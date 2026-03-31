@@ -117,7 +117,9 @@ function App() {
               path="/setup/organization"
               element={
                 <ProtectedRoute>
-                  <CreateOrganization />
+                  <ErrorBoundary>
+                    <CreateOrganization />
+                  </ErrorBoundary>
                 </ProtectedRoute>
               }
             />
