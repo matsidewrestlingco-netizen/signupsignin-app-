@@ -25,6 +25,7 @@ import { AdminEventDetail } from './pages/admin/EventDetail';
 import { AdminReports } from './pages/admin/Reports';
 import { AdminSettings } from './pages/admin/Settings';
 import { AdminTemplates } from './pages/admin/Templates';
+import { EventCheckIn } from './pages/admin/EventCheckIn';
 
 // Parent pages
 import { ParentDashboard } from './pages/parent/Dashboard';
@@ -140,6 +141,18 @@ function App() {
               <Route path="settings" element={<AdminSettings />} />
               <Route path="templates" element={<AdminTemplates />} />
             </Route>
+
+            {/* Admin check-in mode — no sidebar */}
+            <Route
+              path="/admin/events/:eventId/checkin"
+              element={
+                <ProtectedRoute requireOrg>
+                  <ErrorBoundary>
+                    <EventCheckIn />
+                  </ErrorBoundary>
+                </ProtectedRoute>
+              }
+            />
 
             {/* Parent routes */}
             <Route
