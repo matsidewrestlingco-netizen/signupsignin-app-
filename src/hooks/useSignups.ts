@@ -8,6 +8,7 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  getDoc,
   serverTimestamp,
   Timestamp,
   getDocs,
@@ -150,14 +151,25 @@ export function useSignups(orgId: string | undefined, eventId?: string) {
   async function cancelSignup(signupId: string): Promise<void> {
     if (!orgId) throw new Error('No organization selected');
 
-    const signup = signups.find((s) => s.id === signupId);
     const signupRef = doc(db, 'organizations', orgId, 'signups', signupId);
+    const signupSnap = await getDoc(signupRef);
+
+    if (!signupSnap.exists()) return;
+
+    const { eventId, slotId } = signupSnap.data();
+
     await deleteDoc(signupRef);
 
-    if (signup) {
-      const slotRef = doc(db, 'organizations', orgId, 'events', signup.eventId, 'slots', signup.slotId);
-      await updateDoc(slotRef, { quantityFilled: increment(-1) });
-    }
+    const slotRef = doc(
+      db,
+      'organizations',
+      orgId,
+      'events',
+      eventId,
+      'slots',
+      slotId
+    );
+    await updateDoc(slotRef, { quantityFilled: increment(-1) });
   }
 
   return {
@@ -228,14 +240,25 @@ export function useMySignups(orgId: string | undefined, userId: string | undefin
   async function cancelSignup(signupId: string): Promise<void> {
     if (!orgId) throw new Error('No organization selected');
 
-    const signup = signups.find((s) => s.id === signupId);
     const signupRef = doc(db, 'organizations', orgId, 'signups', signupId);
+    const signupSnap = await getDoc(signupRef);
+
+    if (!signupSnap.exists()) return;
+
+    const { eventId, slotId } = signupSnap.data();
+
     await deleteDoc(signupRef);
 
-    if (signup) {
-      const slotRef = doc(db, 'organizations', orgId, 'events', signup.eventId, 'slots', signup.slotId);
-      await updateDoc(slotRef, { quantityFilled: increment(-1) });
-    }
+    const slotRef = doc(
+      db,
+      'organizations',
+      orgId,
+      'events',
+      eventId,
+      'slots',
+      slotId
+    );
+    await updateDoc(slotRef, { quantityFilled: increment(-1) });
   }
 
   return {
