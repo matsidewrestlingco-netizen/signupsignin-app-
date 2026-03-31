@@ -34,23 +34,19 @@ export function ParentDashboard() {
         return;
       }
 
-      const details: SignupWithDetails[] = [];
+      const results = await Promise.all(
+        signups.map(async (signup) => {
+          try {
+            const [eventDoc, slotDoc] = await Promise.all([
+              getDoc(doc(db, 'organizations', currentOrg.id, 'events', signup.eventId)),
+              getDoc(doc(db, 'organizations', currentOrg.id, 'events', signup.eventId, 'slots', signup.slotId)),
+            ]);
 
-      for (const signup of signups) {
-        try {
-          // Fetch event
-          const eventDoc = await getDoc(
-            doc(db, 'organizations', currentOrg.id, 'events', signup.eventId)
-          );
-          const eventData = eventDoc.data();
+            const eventData = eventDoc.data();
+            const slotData = slotDoc.data();
 
-          // Fetch slot
-          const slotDoc = await getDoc(
-            doc(db, 'organizations', currentOrg.id, 'events', signup.eventId, 'slots', signup.slotId)
-          );
-          const slotData = slotDoc.data();
+            if (!eventData || !slotData) return null;
 
-          if (eventData && slotData) {
             let slotTime: string | undefined;
             if (slotData.startTime) {
               const start = (slotData.startTime as Timestamp).toDate();
@@ -61,20 +57,21 @@ export function ParentDashboard() {
               }
             }
 
-            details.push({
+            return {
               ...signup,
               eventTitle: eventData.title,
               eventDate: (eventData.startTime as Timestamp)?.toDate() || new Date(),
               slotName: slotData.name,
               slotTime,
-            });
+            } as SignupWithDetails;
+          } catch (err) {
+            console.error('Error fetching signup details:', err);
+            return null;
           }
-        } catch (err) {
-          console.error('Error fetching signup details:', err);
-        }
-      }
+        })
+      );
 
-      // Sort by event date
+      const details = results.filter((d): d is SignupWithDetails => d !== null);
       details.sort((a, b) => a.eventDate.getTime() - b.eventDate.getTime());
       setSignupsWithDetails(details);
       setLoadingDetails(false);
