@@ -5,14 +5,10 @@ vi.mock('../../contexts/AuthContext', () => ({
   useAuth: vi.fn(),
 }));
 
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
-  return {
-    ...actual,
-    useLocation: vi.fn(() => ({ pathname: '/test', search: '', hash: '', state: null, key: '' })),
-    Navigate: ({ to }: { to: string }) => <div data-testid="navigate">{`Navigate to ${to}`}</div>,
-  };
-});
+vi.mock('react-router-dom', () => ({
+  useLocation: vi.fn(() => ({ pathname: '/test', search: '', hash: '', state: null, key: '' })),
+  Navigate: ({ to }: { to: string }) => <div data-testid="navigate">{`Navigate to ${to}`}</div>,
+}));
 
 import { ProtectedRoute } from '../ProtectedRoute';
 import { useAuth } from '../../contexts/AuthContext';
