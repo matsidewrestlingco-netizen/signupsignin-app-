@@ -12,8 +12,8 @@ import type { Signup } from '../../hooks/useSignups';
 export function EventCheckIn() {
   const { eventId } = useParams<{ eventId: string }>();
   const { currentOrg } = useOrg();
-  const { slots, loading: slotsLoading } = useSlots(currentOrg?.id, eventId);
-  const { signups, loading: signupsLoading, checkIn, undoCheckIn } = useSignups(
+  const { slots, loading: slotsLoading, error: slotsError } = useSlots(currentOrg?.id, eventId);
+  const { signups, loading: signupsLoading, checkIn, undoCheckIn, error: signupsError } = useSignups(
     currentOrg?.id,
     eventId
   );
@@ -24,7 +24,10 @@ export function EventCheckIn() {
 
   useEffect(() => {
     async function fetchEvent() {
-      if (!currentOrg?.id || !eventId) return;
+      if (!currentOrg?.id || !eventId) {
+        setEventLoading(false);
+        return;
+      }
       try {
         const eventDoc = await getDoc(
           doc(db, 'organizations', currentOrg.id, 'events', eventId)
@@ -104,7 +107,7 @@ export function EventCheckIn() {
       {/* Sticky header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10 px-4 py-3">
         <Link
-          to={`/admin/events/${eventId}`}
+          to={`/admin/events/${eventId ?? ''}`}
           className="text-sm text-primary-600 hover:text-primary-500"
         >
           ← Back to Event
@@ -124,9 +127,14 @@ export function EventCheckIn() {
       </header>
 
       <main className="px-4 py-4 space-y-6 max-w-2xl mx-auto">
+        {(slotsError || signupsError) && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-sm text-red-700">{slotsError || signupsError}</p>
+          </div>
+        )}
         {slots.length === 0 ? (
           <p className="text-center text-gray-500 py-12">
-            No one has signed up for this event yet.
+            No slots have been created for this event yet.
           </p>
         ) : (
           categories.map((category) => (
