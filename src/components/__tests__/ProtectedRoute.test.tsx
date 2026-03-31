@@ -58,7 +58,7 @@ describe('ProtectedRoute', () => {
     expect(container.querySelector('[data-testid="navigate"]')).toBeInTheDocument();
   });
 
-  it('shows spinner when requireOrg=true but userProfile is still null', () => {
+  it('redirects to /setup/organization when requireOrg=true but userProfile is null', () => {
     mockUseAuth.mockReturnValue({
       currentUser: { uid: '123' },
       loading: false,
@@ -68,7 +68,8 @@ describe('ProtectedRoute', () => {
       <ProtectedRoute requireOrg><p>Admin content</p></ProtectedRoute>
     );
     expect(screen.queryByText('Admin content')).not.toBeInTheDocument();
-    expect(container.querySelector('.animate-spin')).toBeInTheDocument();
+    expect(container.querySelector('[data-testid="navigate"]')).toBeInTheDocument();
+    expect(screen.getByText('Navigate to /setup/organization')).toBeInTheDocument();
   });
 
   it('does not render children when requireOrg=true and user has no orgs', () => {

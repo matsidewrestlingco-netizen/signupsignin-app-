@@ -22,13 +22,9 @@ export function ProtectedRoute({ children, requireOrg = false }: ProtectedRouteP
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Wait for profile to finish loading before checking org requirement
+  // If profile is missing after auth resolves, send to org creation
   if (requireOrg && userProfile === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-700"></div>
-      </div>
-    );
+    return <Navigate to="/setup/organization" replace />;
   }
 
   if (requireOrg && userProfile && Object.keys(userProfile.organizations).length === 0) {
