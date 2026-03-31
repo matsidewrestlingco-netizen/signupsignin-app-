@@ -300,7 +300,13 @@ export function AdminEventDetail() {
               {event.location && ` • ${event.location}`}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <Link
+              to={`/admin/events/${eventId}/checkin`}
+              className="btn-primary"
+            >
+              Day-Of Roster
+            </Link>
             <button onClick={openTemplateModal} className="btn-secondary">Save as Template</button>
             <button onClick={openEditModal} className="btn-secondary">Edit</button>
             <button onClick={() => setShowDeleteModal(true)} className="btn-danger">Delete</button>
