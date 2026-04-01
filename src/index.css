@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: #eff4ff;
+  --color-primary-100: #dbe6fe;
+  --color-primary-200: #bfd3fe;
+  --color-primary-300: #93b4fd;
+  --color-primary-400: #6090fa;
+  --color-primary-500: #3b6bf6;
+  --color-primary-600: #2550eb;
+  --color-primary-700: #243c7c;
+  --color-primary-800: #1e3266;
+  --color-primary-900: #1e2d54;
+  --color-primary-950: #161d35;
+}
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm transition-colors;
+  }
+
+  .btn:focus {
+    @apply outline-none ring-2 ring-offset-2;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm transition-colors bg-primary-700 text-white;
+  }
+
+  .btn-primary:hover {
+    @apply bg-primary-800;
+  }
+
+  .btn-primary:focus {
+    @apply outline-none ring-2 ring-offset-2 ring-primary-500;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-4 py-2 border text-sm font-medium rounded-md shadow-sm transition-colors bg-white text-gray-700 border-gray-300;
+  }
+
+  .btn-secondary:hover {
+    @apply bg-gray-50;
+  }
+
+  .btn-secondary:focus {
+    @apply outline-none ring-2 ring-offset-2 ring-primary-500;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm transition-colors bg-red-600 text-white;
+  }
+
+  .btn-danger:hover {
+    @apply bg-red-700;
+  }
+
+  .btn-danger:focus {
+    @apply outline-none ring-2 ring-offset-2 ring-red-500;
+  }
+
+  .input {
+    @apply block w-full rounded-md border-gray-300 shadow-sm sm:text-sm;
+  }
+
+  .input:focus {
+    @apply border-primary-500 ring-primary-500;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-gray-700;
+  }
+
+  .card {
+    @apply bg-white shadow rounded-lg overflow-hidden;
+  }
+
+  .card-header {
+    @apply px-4 py-5 sm:px-6 border-b border-gray-200;
+  }
+
+  .card-body {
+    @apply px-4 py-5 sm:p-6;
+  }
+
+  .page-header {
+    @apply mb-8;
+  }
+
+  .page-title {
+    @apply text-2xl font-bold text-gray-900;
+  }
+
+  .page-subtitle {
+    @apply mt-1 text-sm text-gray-500;
+  }
+}

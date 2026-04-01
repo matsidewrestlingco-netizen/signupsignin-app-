@@ -1,0 +1,112 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isOrgAdmin(orgId) {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.organizations[orgId] == 'admin';
+    }
+
+    function isOrgMember(orgId) {
+      let userOrgs = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.organizations;
+      return isSignedIn() &&
+        (userOrgs[orgId] == 'admin' || userOrgs[orgId] == 'member');
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.superAdmin == true;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Users can read their own profile; super admins can read any profile
+      allow read: if isOwner(userId) || isSuperAdmin();
+
+      // Users can create their own profile during signup
+      allow create: if isOwner(userId) &&
+        request.resource.data.keys().hasAll(['email', 'name', 'createdAt', 'organizations']) &&
+        request.resource.data.organizations == {};
+
+      // Users can update their own profile (including adding orgs)
+      allow update: if isOwner(userId);
+    }
+
+    // Organizations collection
+    match /organizations/{orgId} {
+      // Anyone can read org info (needed for public event pages)
+      allow read: if true;
+
+      // Anyone signed in can create an org (they become admin)
+      allow create: if isSignedIn() &&
+        request.resource.data.ownerId == request.auth.uid;
+
+      // Only org admins can update
+      allow update: if isOrgAdmin(orgId);
+
+      // Only org owner can delete
+      allow delete: if isSignedIn() &&
+        resource.data.ownerId == request.auth.uid;
+
+      // Events subcollection
+      match /events/{eventId} {
+        // Public events readable by anyone, private events by org members or super admins
+        allow read: if resource.data.isPublic == true || isOrgMember(orgId) || isSuperAdmin();
+
+        // Only org admins can create/update/delete events
+        allow create, update, delete: if isOrgAdmin(orgId);
+
+        // Slots subcollection
+        match /slots/{slotId} {
+          // Anyone can read slots (needed for public event detail pages)
+          allow read: if true;
+
+          // Org admins can fully manage slots
+          allow create, delete: if isOrgAdmin(orgId);
+
+          // Org admins can update anything; signed-in users can only update quantityFilled (for signup counts)
+          allow update: if isOrgAdmin(orgId) ||
+            (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantityFilled']));
+        }
+      }
+
+      // Templates subcollection
+      match /templates/{templateId} {
+        allow read, write: if isOrgAdmin(orgId);
+      }
+
+      // Signups subcollection
+      match /signups/{signupId} {
+        // Org admins can read all signups
+        // Users can read their own signups
+        allow read: if isOrgAdmin(orgId) ||
+          (isSignedIn() && resource.data.get('userId', null) == request.auth.uid);
+
+        // Signed in users can create signups for themselves
+        allow create: if isSignedIn() &&
+          request.resource.data.userId == request.auth.uid &&
+          request.resource.data.keys().hasAll(['eventId', 'slotId', 'userId', 'userName', 'userEmail', 'checkedIn']);
+
+        // Users can update their own signup (for self check-in)
+        // Admins can update any signup (for admin check-in)
+        allow update: if isOrgAdmin(orgId) ||
+          (isSignedIn() && resource.data.userId == request.auth.uid);
+
+        // Users can delete their own signup (cancel)
+        // Admins can delete any signup
+        allow delete: if isOrgAdmin(orgId) ||
+          (isSignedIn() && resource.data.userId == request.auth.uid);
+      }
+    }
+  }
+}

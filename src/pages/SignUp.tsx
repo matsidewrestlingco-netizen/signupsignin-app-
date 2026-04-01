@@ -3,32 +3,45 @@ import type { FormEvent } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-export function Login() {
+export function SignUp() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { logIn, signInWithGoogle } = useAuth();
+  const { signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const rawFrom = (location.state as { from?: Location })?.from?.pathname;
-  const from =
-    rawFrom?.startsWith('/admin') || rawFrom?.startsWith('/platform') || rawFrom?.startsWith('/event')
+  // Return to the originating page if it was an event, admin, or platform route.
+  // Otherwise new users go through org setup (the normal admin onboarding path).
+  const destination =
+    rawFrom?.startsWith('/event') || rawFrom?.startsWith('/admin') || rawFrom?.startsWith('/platform')
       ? rawFrom
-      : '/admin';
+      : '/setup/organization';
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError('');
+
+    if (password !== confirmPassword) {
+      return setError('Passwords do not match');
+    }
+
+    if (password.length < 6) {
+      return setError('Password must be at least 6 characters');
+    }
+
     setLoading(true);
 
     try {
-      await logIn(email, password);
-      navigate(from, { replace: true });
+      await signUp(email, password, name);
+      navigate(destination, { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to log in');
+      setError(err instanceof Error ? err.message : 'Failed to create account');
     } finally {
       setLoading(false);
     }
@@ -42,16 +55,15 @@ export function Login() {
             <h1 className="text-3xl font-bold text-primary-700">SignupSignin</h1>
           </Link>
           <h2 className="mt-6 text-center text-2xl font-bold text-gray-900">
-            Log in to your account
+            Create your account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
+            Already have an account?{' '}
             <Link
-              to="/signup"
-              state={{ from: (location.state as { from?: Location })?.from }}
+              to="/login"
               className="font-medium text-primary-600 hover:text-primary-500"
             >
-              create a new account
+              Log in
             </Link>
           </p>
         </div>
@@ -64,6 +76,21 @@ export function Login() {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
+            <div>
+              <label htmlFor="name" className="label">
+                Full name
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                autoComplete="name"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="input mt-1"
+              />
+            </div>
             <div>
               <label htmlFor="email" className="label">
                 Email address
@@ -87,23 +114,27 @@ export function Login() {
                 id="password"
                 name="password"
                 type="password"
-                autoComplete="current-password"
+                autoComplete="new-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input mt-1"
               />
             </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="text-sm">
-              <Link
-                to="/forgot-password"
-                className="font-medium text-primary-600 hover:text-primary-500"
-              >
-                Forgot your password?
-              </Link>
+            <div>
+              <label htmlFor="confirmPassword" className="label">
+                Confirm password
+              </label>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="input mt-1"
+              />
             </div>
           </div>
 
@@ -112,7 +143,7 @@ export function Login() {
             disabled={loading}
             className="btn-primary w-full py-3"
           >
-            {loading ? 'Logging in...' : 'Log in'}
+            {loading ? 'Creating account...' : 'Create account'}
           </button>
 
           <div className="relative my-4">
@@ -132,9 +163,9 @@ export function Login() {
               setLoading(true);
               try {
                 await signInWithGoogle();
-                navigate(from, { replace: true });
+                navigate(destination, { replace: true });
               } catch (err) {
-                setError(err instanceof Error ? err.message : 'Failed to sign in with Google');
+                setError(err instanceof Error ? err.message : 'Failed to sign up with Google');
               } finally {
                 setLoading(false);
               }
@@ -147,7 +178,7 @@ export function Login() {
               <path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.01 24.01 0 0 0 0 21.56l7.98-6.19z"/>
               <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>
-            Sign in with Google
+            Sign up with Google
           </button>
         </form>
       </div>

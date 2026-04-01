@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet, Link } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { OrgProvider } from './contexts/OrgContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -37,6 +37,18 @@ import { PlatformDashboard } from './pages/platform/PlatformDashboard';
 import { PlatformUsers } from './pages/platform/PlatformUsers';
 import { PlatformOrganizations } from './pages/platform/PlatformOrganizations';
 import { PlatformOrgDetail } from './pages/platform/PlatformOrgDetail';
+
+function NotFound() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-2">Page not found</h2>
+        <p className="text-gray-500 mb-6">The page you're looking for doesn't exist.</p>
+        <Link to="/" className="btn-primary px-6 py-2">Go home</Link>
+      </div>
+    </div>
+  );
+}
 
 function PublicLayout() {
   return (
@@ -129,7 +141,7 @@ function App() {
             <Route
               path="/admin"
               element={
-                <ProtectedRoute requireOrg>
+                <ProtectedRoute requireOrg requireAdmin>
                   <ErrorBoundary><AdminLayout /></ErrorBoundary>
                 </ProtectedRoute>
               }
@@ -140,6 +152,7 @@ function App() {
               <Route path="reports" element={<AdminReports />} />
               <Route path="settings" element={<AdminSettings />} />
               <Route path="templates" element={<AdminTemplates />} />
+              <Route path="*" element={<NotFound />} />
             </Route>
 
             {/* Admin check-in mode — no sidebar */}
@@ -182,6 +195,8 @@ function App() {
               <Route path="organizations" element={<PlatformOrganizations />} />
               <Route path="organizations/:orgId" element={<PlatformOrgDetail />} />
             </Route>
+            {/* Top-level catch-all */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </OrgProvider>
       </AuthProvider>
