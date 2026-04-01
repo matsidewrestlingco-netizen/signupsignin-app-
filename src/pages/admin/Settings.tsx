@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useOrg } from '../../contexts/OrgContext';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../../lib/firebase';
+import { useAuth } from '../../contexts/AuthContext';
 
 const colorPresets = [
   { name: 'Blue', value: '#243c7c' },
@@ -15,6 +18,10 @@ const colorPresets = [
 
 export function AdminSettings() {
   const { currentOrg, updateOrganization } = useOrg();
+  const { currentUser } = useAuth();
+  const [testEmail, setTestEmail] = useState(currentUser?.email || '');
+  const [testEmailStatus, setTestEmailStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  const [testEmailError, setTestEmailError] = useState('');
 
   const [name, setName] = useState(currentOrg?.name || '');
   const [primaryColor, setPrimaryColor] = useState(
@@ -58,6 +65,21 @@ export function AdminSettings() {
       setMessage(err instanceof Error ? err.message : 'Failed to save settings');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSendTestEmail = async () => {
+    if (!currentOrg || !testEmail) return;
+    setTestEmailStatus('sending');
+    setTestEmailError('');
+
+    try {
+      const sendTest = httpsCallable(functions, 'sendTestEmail');
+      await sendTest({ orgId: currentOrg.id, email: testEmail });
+      setTestEmailStatus('success');
+    } catch (err) {
+      setTestEmailStatus('error');
+      setTestEmailError(err instanceof Error ? err.message : 'Failed to send test email');
     }
   };
 
@@ -246,6 +268,36 @@ export function AdminSettings() {
                   </select>
                 </div>
               )}
+
+              <div className="border-t border-gray-200 pt-4">
+                <label className="font-medium text-gray-900">Send Test Email</label>
+                <p className="text-sm text-gray-500 mb-2">
+                  Verify email notifications are working
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={testEmail}
+                    onChange={(e) => setTestEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="input flex-1"
+                  />
+                  <button
+                    type="button"
+                    disabled={testEmailStatus === 'sending' || !testEmail}
+                    onClick={handleSendTestEmail}
+                    className="btn-secondary whitespace-nowrap"
+                  >
+                    {testEmailStatus === 'sending' ? 'Sending...' : 'Send Test'}
+                  </button>
+                </div>
+                {testEmailStatus === 'success' && (
+                  <p className="text-sm text-green-600 mt-1">Test email sent successfully!</p>
+                )}
+                {testEmailStatus === 'error' && (
+                  <p className="text-sm text-red-600 mt-1">{testEmailError}</p>
+                )}
+              </div>
 
               <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                 <p className="text-sm text-amber-800">
