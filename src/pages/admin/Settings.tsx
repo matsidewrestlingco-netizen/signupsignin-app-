@@ -299,13 +299,6 @@ export function AdminSettings() {
                   <p className="text-sm text-red-600 mt-1">{testEmailError}</p>
                 )}
               </div>
-
-              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-sm text-amber-800">
-                  <strong>Note:</strong> Email notifications require Firebase Cloud Functions to be deployed.
-                  See the <code className="bg-amber-100 px-1 rounded">functions/</code> directory for setup instructions.
-                </p>
-              </div>
             </div>
           </div>
 
