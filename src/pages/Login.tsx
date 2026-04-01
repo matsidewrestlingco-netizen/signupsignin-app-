@@ -13,7 +13,8 @@ export function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = (location.state as { from?: Location })?.from?.pathname || '/admin';
+  const rawFrom = (location.state as { from?: Location })?.from?.pathname;
+  const from = rawFrom?.startsWith('/admin') || rawFrom?.startsWith('/platform') ? rawFrom : '/admin';
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
