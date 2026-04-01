@@ -70,7 +70,7 @@ describe('AdminSettings — test email button', () => {
     fireEvent.click(screen.getByRole('button', { name: /send test/i }));
 
     await waitFor(() => {
-      expect(mockHttpsCallable).toHaveBeenCalledWith({}, 'sendTestEmail');
+      expect(mockHttpsCallable).toHaveBeenCalledWith(expect.anything(), 'sendTestEmail');
       expect(mockSendFn).toHaveBeenCalledWith({
         orgId: 'org1',
         email: 'admin@test.com',

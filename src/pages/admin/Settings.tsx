@@ -270,12 +270,13 @@ export function AdminSettings() {
               )}
 
               <div className="border-t border-gray-200 pt-4">
-                <label className="font-medium text-gray-900">Send Test Email</label>
+                <label htmlFor="testEmail" className="font-medium text-gray-900">Send Test Email</label>
                 <p className="text-sm text-gray-500 mb-2">
                   Verify email notifications are working
                 </p>
                 <div className="flex gap-2">
                   <input
+                    id="testEmail"
                     type="email"
                     value={testEmail}
                     onChange={(e) => setTestEmail(e.target.value)}
