@@ -155,7 +155,7 @@ export const onSignupCreated = onDocumentCreated(
           <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; margin: 16px 0;">
             <strong style="font-size: 18px;">${escapeHtml(eventData.title)}</strong><br/>
             <span style="color: #666;">
-              ${formattedDate}${slotTime ? ` at ${slotTime}` : ''}<br/>
+              ${escapeHtml(formattedDate)}${slotTime ? ` at ${escapeHtml(slotTime)}` : ''}<br/>
               ${eventData.location ? `Location: ${escapeHtml(eventData.location)}<br/>` : ''}
               ${slot ? `Role: ${escapeHtml(slot.name)} (${escapeHtml(slot.category)})` : ''}
             </span>
