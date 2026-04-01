@@ -44,6 +44,15 @@ interface OrgData {
   };
 }
 
+function escapeHtml(str: string | undefined): string {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 function formatReminderSubject(eventTitle: string, hours: number): string {
   if (hours === 24) return `Reminder: ${eventTitle} is tomorrow!`;
   if (hours < 24) return `Reminder: ${eventTitle} is in ${hours} hours`;
@@ -63,20 +72,20 @@ function buildReminderHtml(
 ): string {
   return `
     <h2>Reminder: You're signed up!</h2>
-    <p>Hi ${userName},</p>
+    <p>Hi ${escapeHtml(userName)},</p>
     <p>This is a friendly reminder about your upcoming volunteer commitment:</p>
     <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; margin: 16px 0;">
-      <strong style="font-size: 18px;">${eventTitle}</strong><br/>
+      <strong style="font-size: 18px;">${escapeHtml(eventTitle)}</strong><br/>
       <span style="color: #666;">
         ${formattedDate} at ${formattedTime}<br/>
-        ${location ? `Location: ${location}<br/>` : ''}
-        ${slotName ? `Your role: ${slotName}${slotCategory ? ` (${slotCategory})` : ''}` : ''}
+        ${location ? `Location: ${escapeHtml(location)}<br/>` : ''}
+        ${slotName ? `Your role: ${escapeHtml(slotName)}${slotCategory ? ` (${escapeHtml(slotCategory)})` : ''}` : ''}
       </span>
     </div>
     <p>We look forward to seeing you there!</p>
     <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" />
     <p style="color: #999; font-size: 12px;">
-      This reminder was sent by ${orgName} via SignupSignin.
+      This reminder was sent by ${escapeHtml(orgName)} via SignupSignin.
     </p>
   `;
 }
@@ -100,6 +109,8 @@ export const onSignupCreated = onDocumentCreated(
         console.log('Confirmation emails disabled for org:', orgId);
         return;
       }
+
+      const resend = new Resend(resendApiKey.value());
 
       const eventDoc = await db
         .doc(`organizations/${orgId}/events/${signup.eventId}`)
@@ -129,28 +140,27 @@ export const onSignupCreated = onDocumentCreated(
           })
         : '';
 
-      const resend = new Resend(resendApiKey.value());
       await resend.emails.send({
         from: `${org.name} via SignupSignin <${FROM_ADDRESS}>`,
         to: signup.userEmail,
         subject: `Signup Confirmation: ${eventData.title}`,
         html: `
           <h2>You're signed up!</h2>
-          <p>Hi ${signup.userName},</p>
+          <p>Hi ${escapeHtml(signup.userName)},</p>
           <p>This confirms your signup for:</p>
           <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; margin: 16px 0;">
-            <strong style="font-size: 18px;">${eventData.title}</strong><br/>
+            <strong style="font-size: 18px;">${escapeHtml(eventData.title)}</strong><br/>
             <span style="color: #666;">
               ${formattedDate}${slotTime ? ` at ${slotTime}` : ''}<br/>
-              ${eventData.location ? `Location: ${eventData.location}<br/>` : ''}
-              ${slot ? `Role: ${slot.name} (${slot.category})` : ''}
+              ${eventData.location ? `Location: ${escapeHtml(eventData.location)}<br/>` : ''}
+              ${slot ? `Role: ${escapeHtml(slot.name)} (${escapeHtml(slot.category)})` : ''}
             </span>
           </div>
           <p>We'll send you a reminder before the event.</p>
           <p>Thank you for volunteering!</p>
           <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" />
           <p style="color: #999; font-size: 12px;">
-            This email was sent by ${org.name} via SignupSignin.
+            This email was sent by ${escapeHtml(org.name)} via SignupSignin.
           </p>
         `,
       });
@@ -271,6 +281,8 @@ export const sendTestEmail = onCall(
       throw new HttpsError('unauthenticated', 'Must be logged in');
     }
 
+    const resend = new Resend(resendApiKey.value());
+
     const { orgId, email } = request.data as { orgId: string; email: string };
 
     const userDoc = await db.doc(`users/${request.auth.uid}`).get();
@@ -289,18 +301,17 @@ export const sendTestEmail = onCall(
       throw new HttpsError('not-found', 'Organization not found');
     }
 
-    const resend = new Resend(resendApiKey.value());
     await resend.emails.send({
       from: `${org.name} via SignupSignin <${FROM_ADDRESS}>`,
       to: email,
       subject: 'Test Email from SignupSignin',
       html: `
         <h2>Test Email</h2>
-        <p>Email notifications are working correctly for <strong>${org.name}</strong>.</p>
+        <p>Email notifications are working correctly for <strong>${escapeHtml(org.name)}</strong>.</p>
         <p>Your volunteers will receive signup confirmations and event reminders.</p>
         <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" />
         <p style="color: #999; font-size: 12px;">
-          This test was sent by ${org.name} via SignupSignin.
+          This test was sent by ${escapeHtml(org.name)} via SignupSignin.
         </p>
       `,
     });
@@ -316,6 +327,8 @@ export const sendEventReminderBlast = onCall(
     if (!request.auth) {
       throw new HttpsError('unauthenticated', 'Must be logged in');
     }
+
+    const resend = new Resend(resendApiKey.value());
 
     const { orgId, eventId } = request.data as {
       orgId: string;
@@ -350,8 +363,6 @@ export const sendEventReminderBlast = onCall(
       .collection(`organizations/${orgId}/signups`)
       .where('eventId', '==', eventId)
       .get();
-
-    const resend = new Resend(resendApiKey.value());
     let sent = 0;
 
     const eventDate = eventData.startTime.toDate();
