@@ -4,6 +4,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { doc, getDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../../lib/firebase';
 import { useOrg } from '../../contexts/OrgContext';
 import { useEvents } from '../../hooks/useEvents';
 import type { Event, EventInput } from '../../hooks/useEvents';
@@ -62,6 +64,8 @@ export function AdminEventDetail() {
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
   const [savingTemplate, setSavingTemplate] = useState(false);
+  const [sendingReminder, setSendingReminder] = useState(false);
+  const [reminderStatus, setReminderStatus] = useState('');
 
   useEffect(() => {
     async function fetchEvent() {
@@ -260,6 +264,28 @@ export function AdminEventDetail() {
     }
   };
 
+  const handleSendReminder = async () => {
+    if (!currentOrg?.id || !eventId) return;
+    setSendingReminder(true);
+    setReminderStatus('');
+
+    try {
+      const blast = httpsCallable<
+        { orgId: string; eventId: string },
+        { sent: number }
+      >(functions, 'sendEventReminderBlast');
+      const result = await blast({ orgId: currentOrg.id, eventId });
+      const n = result.data.sent;
+      setReminderStatus(`Reminder sent to ${n} volunteer${n !== 1 ? 's' : ''}`);
+    } catch (err) {
+      setReminderStatus(
+        err instanceof Error ? err.message : 'Failed to send reminder'
+      );
+    } finally {
+      setSendingReminder(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -308,6 +334,13 @@ export function AdminEventDetail() {
               Day-Of Roster
             </Link>
             <button onClick={openTemplateModal} className="btn-secondary">Save as Template</button>
+            <button
+              onClick={handleSendReminder}
+              disabled={sendingReminder || signups.length === 0}
+              className="btn-secondary"
+            >
+              {sendingReminder ? 'Sending...' : 'Send Reminder'}
+            </button>
             <button onClick={openEditModal} className="btn-secondary">Edit</button>
             <button onClick={() => setShowDeleteModal(true)} className="btn-danger">Delete</button>
           </div>
@@ -319,6 +352,18 @@ export function AdminEventDetail() {
           <div className="card-body">
             <p className="text-gray-600 whitespace-pre-wrap">{event.description}</p>
           </div>
+        </div>
+      )}
+
+      {reminderStatus && (
+        <div
+          className={`mb-4 p-3 rounded-md text-sm ${
+            reminderStatus.startsWith('Reminder sent')
+              ? 'bg-green-50 text-green-700 border border-green-200'
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`}
+        >
+          {reminderStatus}
         </div>
       )}
 
