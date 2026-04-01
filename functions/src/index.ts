@@ -1,19 +1,15 @@
-import * as functions from 'firebase-functions';
+import { onDocumentCreated } from 'firebase-functions/v2/firestore';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { defineSecret } from 'firebase-functions/params';
 import * as admin from 'firebase-admin';
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 admin.initializeApp();
 const db = admin.firestore();
 
-// Configure email transporter (uses Firebase config for credentials)
-// Set these with: firebase functions:config:set email.user="your@email.com" email.pass="your-app-password"
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: functions.config().email?.user,
-    pass: functions.config().email?.pass,
-  },
-});
+const resendApiKey = defineSecret('RESEND_API_KEY');
+const FROM_ADDRESS = 'noreply@alerts.signupsignin.com';
 
 interface SignupData {
   eventId: string;
@@ -48,15 +44,55 @@ interface OrgData {
   };
 }
 
+function formatReminderSubject(eventTitle: string, hours: number): string {
+  if (hours === 24) return `Reminder: ${eventTitle} is tomorrow!`;
+  if (hours < 24) return `Reminder: ${eventTitle} is in ${hours} hours`;
+  const days = Math.round(hours / 24);
+  return `Reminder: ${eventTitle} is in ${days} days`;
+}
+
+function buildReminderHtml(
+  userName: string,
+  orgName: string,
+  eventTitle: string,
+  formattedDate: string,
+  formattedTime: string,
+  location: string | undefined,
+  slotName: string | undefined,
+  slotCategory: string | undefined
+): string {
+  return `
+    <h2>Reminder: You're signed up!</h2>
+    <p>Hi ${userName},</p>
+    <p>This is a friendly reminder about your upcoming volunteer commitment:</p>
+    <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; margin: 16px 0;">
+      <strong style="font-size: 18px;">${eventTitle}</strong><br/>
+      <span style="color: #666;">
+        ${formattedDate} at ${formattedTime}<br/>
+        ${location ? `Location: ${location}<br/>` : ''}
+        ${slotName ? `Your role: ${slotName}${slotCategory ? ` (${slotCategory})` : ''}` : ''}
+      </span>
+    </div>
+    <p>We look forward to seeing you there!</p>
+    <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" />
+    <p style="color: #999; font-size: 12px;">
+      This reminder was sent by ${orgName} via SignupSignin.
+    </p>
+  `;
+}
+
 // Send confirmation email when a signup is created
-export const onSignupCreated = functions.firestore
-  .document('organizations/{orgId}/signups/{signupId}')
-  .onCreate(async (snap, context) => {
-    const { orgId } = context.params;
-    const signup = snap.data() as SignupData;
+export const onSignupCreated = onDocumentCreated(
+  {
+    document: 'organizations/{orgId}/signups/{signupId}',
+    secrets: [resendApiKey],
+  },
+  async (event) => {
+    const { orgId } = event.params;
+    const signup = event.data?.data() as SignupData | undefined;
+    if (!signup) return;
 
     try {
-      // Get org settings
       const orgDoc = await db.doc(`organizations/${orgId}`).get();
       const org = orgDoc.data() as OrgData | undefined;
 
@@ -65,46 +101,48 @@ export const onSignupCreated = functions.firestore
         return;
       }
 
-      // Get event details
-      const eventDoc = await db.doc(`organizations/${orgId}/events/${signup.eventId}`).get();
-      const event = eventDoc.data() as EventData | undefined;
-
-      if (!event) {
+      const eventDoc = await db
+        .doc(`organizations/${orgId}/events/${signup.eventId}`)
+        .get();
+      const eventData = eventDoc.data() as EventData | undefined;
+      if (!eventData) {
         console.error('Event not found:', signup.eventId);
         return;
       }
 
-      // Get slot details
-      const slotDoc = await db.doc(`organizations/${orgId}/events/${signup.eventId}/slots/${signup.slotId}`).get();
+      const slotDoc = await db
+        .doc(`organizations/${orgId}/events/${signup.eventId}/slots/${signup.slotId}`)
+        .get();
       const slot = slotDoc.data() as SlotData | undefined;
 
-      // Format date
-      const eventDate = event.startTime.toDate();
+      const eventDate = eventData.startTime.toDate();
       const formattedDate = eventDate.toLocaleDateString('en-US', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric',
       });
-
       const slotTime = slot?.startTime
-        ? slot.startTime.toDate().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+        ? slot.startTime.toDate().toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+          })
         : '';
 
-      // Send confirmation email
-      const mailOptions = {
-        from: `"${org.name}" <${functions.config().email?.user}>`,
+      const resend = new Resend(resendApiKey.value());
+      await resend.emails.send({
+        from: `${org.name} via SignupSignin <${FROM_ADDRESS}>`,
         to: signup.userEmail,
-        subject: `Signup Confirmation: ${event.title}`,
+        subject: `Signup Confirmation: ${eventData.title}`,
         html: `
           <h2>You're signed up!</h2>
           <p>Hi ${signup.userName},</p>
           <p>This confirms your signup for:</p>
           <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; margin: 16px 0;">
-            <strong style="font-size: 18px;">${event.title}</strong><br/>
+            <strong style="font-size: 18px;">${eventData.title}</strong><br/>
             <span style="color: #666;">
               ${formattedDate}${slotTime ? ` at ${slotTime}` : ''}<br/>
-              ${event.location ? `Location: ${event.location}<br/>` : ''}
+              ${eventData.location ? `Location: ${eventData.location}<br/>` : ''}
               ${slot ? `Role: ${slot.name} (${slot.category})` : ''}
             </span>
           </div>
@@ -115,23 +153,26 @@ export const onSignupCreated = functions.firestore
             This email was sent by ${org.name} via SignupSignin.
           </p>
         `,
-      };
+      });
 
-      await transporter.sendMail(mailOptions);
       console.log('Confirmation email sent to:', signup.userEmail);
     } catch (error) {
       console.error('Error sending confirmation email:', error);
     }
-  });
+  }
+);
 
 // Scheduled function to send reminder emails (runs every hour)
-export const sendReminderEmails = functions.pubsub
-  .schedule('every 1 hours')
-  .onRun(async () => {
+export const sendReminderEmails = onSchedule(
+  {
+    schedule: 'every 1 hours',
+    secrets: [resendApiKey],
+  },
+  async () => {
     const now = new Date();
+    const resend = new Resend(resendApiKey.value());
 
     try {
-      // Get all organizations with reminders enabled
       const orgsSnapshot = await db
         .collection('organizations')
         .where('emailSettings.sendReminders', '==', true)
@@ -140,24 +181,25 @@ export const sendReminderEmails = functions.pubsub
       for (const orgDoc of orgsSnapshot.docs) {
         const org = orgDoc.data() as OrgData;
         const orgId = orgDoc.id;
-        const reminderHours = org.emailSettings?.reminderHoursBefore || 24;
+        const reminderHours = org.emailSettings?.reminderHoursBefore ?? 24;
 
-        // Calculate the time window for reminders
-        const reminderWindowStart = new Date(now.getTime() + (reminderHours - 1) * 60 * 60 * 1000);
-        const reminderWindowEnd = new Date(now.getTime() + reminderHours * 60 * 60 * 1000);
+        const windowStart = new Date(
+          now.getTime() + (reminderHours - 1) * 60 * 60 * 1000
+        );
+        const windowEnd = new Date(
+          now.getTime() + reminderHours * 60 * 60 * 1000
+        );
 
-        // Find events starting within the reminder window
         const eventsSnapshot = await db
           .collection(`organizations/${orgId}/events`)
-          .where('startTime', '>=', admin.firestore.Timestamp.fromDate(reminderWindowStart))
-          .where('startTime', '<=', admin.firestore.Timestamp.fromDate(reminderWindowEnd))
+          .where('startTime', '>=', admin.firestore.Timestamp.fromDate(windowStart))
+          .where('startTime', '<=', admin.firestore.Timestamp.fromDate(windowEnd))
           .get();
 
         for (const eventDoc of eventsSnapshot.docs) {
-          const event = eventDoc.data() as EventData;
+          const eventData = eventDoc.data() as EventData;
           const eventId = eventDoc.id;
 
-          // Get signups for this event that haven't received reminders
           const signupsSnapshot = await db
             .collection(`organizations/${orgId}/signups`)
             .where('eventId', '==', eventId)
@@ -167,11 +209,14 @@ export const sendReminderEmails = functions.pubsub
           for (const signupDoc of signupsSnapshot.docs) {
             const signup = signupDoc.data() as SignupData;
 
-            // Get slot details
-            const slotDoc = await db.doc(`organizations/${orgId}/events/${eventId}/slots/${signup.slotId}`).get();
+            const slotDoc = await db
+              .doc(
+                `organizations/${orgId}/events/${eventId}/slots/${signup.slotId}`
+              )
+              .get();
             const slot = slotDoc.data() as SlotData | undefined;
 
-            const eventDate = event.startTime.toDate();
+            const eventDate = eventData.startTime.toDate();
             const formattedDate = eventDate.toLocaleDateString('en-US', {
               weekday: 'long',
               year: 'numeric',
@@ -184,37 +229,30 @@ export const sendReminderEmails = functions.pubsub
             });
 
             try {
-              const mailOptions = {
-                from: `"${org.name}" <${functions.config().email?.user}>`,
+              await resend.emails.send({
+                from: `${org.name} via SignupSignin <${FROM_ADDRESS}>`,
                 to: signup.userEmail,
-                subject: `Reminder: ${event.title} is tomorrow!`,
-                html: `
-                  <h2>Reminder: You're signed up!</h2>
-                  <p>Hi ${signup.userName},</p>
-                  <p>This is a friendly reminder about your upcoming volunteer commitment:</p>
-                  <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; margin: 16px 0;">
-                    <strong style="font-size: 18px;">${event.title}</strong><br/>
-                    <span style="color: #666;">
-                      ${formattedDate} at ${formattedTime}<br/>
-                      ${event.location ? `Location: ${event.location}<br/>` : ''}
-                      ${slot ? `Your role: ${slot.name} (${slot.category})` : ''}
-                    </span>
-                  </div>
-                  <p>We look forward to seeing you there!</p>
-                  <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" />
-                  <p style="color: #999; font-size: 12px;">
-                    This reminder was sent by ${org.name} via SignupSignin.
-                  </p>
-                `,
-              };
+                subject: formatReminderSubject(eventData.title, reminderHours),
+                html: buildReminderHtml(
+                  signup.userName,
+                  org.name,
+                  eventData.title,
+                  formattedDate,
+                  formattedTime,
+                  eventData.location,
+                  slot?.name,
+                  slot?.category
+                ),
+              });
 
-              await transporter.sendMail(mailOptions);
               console.log('Reminder email sent to:', signup.userEmail);
-
-              // Mark reminder as sent
               await signupDoc.ref.update({ reminderSent: true });
             } catch (emailError) {
-              console.error('Error sending reminder to:', signup.userEmail, emailError);
+              console.error(
+                'Error sending reminder to:',
+                signup.userEmail,
+                emailError
+              );
             }
           }
         }
@@ -222,47 +260,146 @@ export const sendReminderEmails = functions.pubsub
     } catch (error) {
       console.error('Error in sendReminderEmails:', error);
     }
-  });
-
-// HTTP function to manually trigger a test email
-export const sendTestEmail = functions.https.onCall(async (data, context) => {
-  // Verify the user is authenticated
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
   }
+);
 
-  const { email, orgId } = data;
+// HTTP callable to send a test email from the admin Settings page
+export const sendTestEmail = onCall(
+  { secrets: [resendApiKey] },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Must be logged in');
+    }
 
-  // Verify user has access to the org
-  const userDoc = await db.doc(`users/${context.auth.uid}`).get();
-  const userData = userDoc.data();
+    const { orgId, email } = request.data as { orgId: string; email: string };
 
-  if (!userData?.organizations?.[orgId]) {
-    throw new functions.https.HttpsError('permission-denied', 'Not an admin of this organization');
-  }
+    const userDoc = await db.doc(`users/${request.auth.uid}`).get();
+    const userData = userDoc.data();
 
-  const orgDoc = await db.doc(`organizations/${orgId}`).get();
-  const org = orgDoc.data() as OrgData | undefined;
+    if (!userData?.organizations?.[orgId]) {
+      throw new HttpsError(
+        'permission-denied',
+        'Not a member of this organization'
+      );
+    }
 
-  if (!org) {
-    throw new functions.https.HttpsError('not-found', 'Organization not found');
-  }
+    const orgDoc = await db.doc(`organizations/${orgId}`).get();
+    const org = orgDoc.data() as OrgData | undefined;
+    if (!org) {
+      throw new HttpsError('not-found', 'Organization not found');
+    }
 
-  try {
-    await transporter.sendMail({
-      from: `"${org.name}" <${functions.config().email?.user}>`,
+    const resend = new Resend(resendApiKey.value());
+    await resend.emails.send({
+      from: `${org.name} via SignupSignin <${FROM_ADDRESS}>`,
       to: email,
       subject: 'Test Email from SignupSignin',
       html: `
         <h2>Test Email</h2>
-        <p>This is a test email from ${org.name}.</p>
-        <p>If you received this, email notifications are working correctly!</p>
+        <p>Email notifications are working correctly for <strong>${org.name}</strong>.</p>
+        <p>Your volunteers will receive signup confirmations and event reminders.</p>
+        <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" />
+        <p style="color: #999; font-size: 12px;">
+          This test was sent by ${org.name} via SignupSignin.
+        </p>
       `,
     });
 
     return { success: true };
-  } catch (error) {
-    console.error('Error sending test email:', error);
-    throw new functions.https.HttpsError('internal', 'Failed to send test email');
   }
-});
+);
+
+// HTTP callable to blast a reminder to all signups for a specific event
+export const sendEventReminderBlast = onCall(
+  { secrets: [resendApiKey] },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Must be logged in');
+    }
+
+    const { orgId, eventId } = request.data as {
+      orgId: string;
+      eventId: string;
+    };
+
+    const userDoc = await db.doc(`users/${request.auth.uid}`).get();
+    const userData = userDoc.data();
+
+    if (userData?.organizations?.[orgId] !== 'admin') {
+      throw new HttpsError(
+        'permission-denied',
+        'Must be an admin of this organization'
+      );
+    }
+
+    const orgDoc = await db.doc(`organizations/${orgId}`).get();
+    const org = orgDoc.data() as OrgData | undefined;
+    if (!org) {
+      throw new HttpsError('not-found', 'Organization not found');
+    }
+
+    const eventDoc = await db
+      .doc(`organizations/${orgId}/events/${eventId}`)
+      .get();
+    const eventData = eventDoc.data() as EventData | undefined;
+    if (!eventData) {
+      throw new HttpsError('not-found', 'Event not found');
+    }
+
+    const signupsSnapshot = await db
+      .collection(`organizations/${orgId}/signups`)
+      .where('eventId', '==', eventId)
+      .get();
+
+    const resend = new Resend(resendApiKey.value());
+    let sent = 0;
+
+    const eventDate = eventData.startTime.toDate();
+    const formattedDate = eventDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+    const formattedTime = eventDate.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+
+    for (const signupDoc of signupsSnapshot.docs) {
+      const signup = signupDoc.data() as SignupData;
+
+      const slotDoc = await db
+        .doc(`organizations/${orgId}/events/${eventId}/slots/${signup.slotId}`)
+        .get();
+      const slot = slotDoc.data() as SlotData | undefined;
+
+      try {
+        await resend.emails.send({
+          from: `${org.name} via SignupSignin <${FROM_ADDRESS}>`,
+          to: signup.userEmail,
+          subject: `Reminder: ${eventData.title}`,
+          html: buildReminderHtml(
+            signup.userName,
+            org.name,
+            eventData.title,
+            formattedDate,
+            formattedTime,
+            eventData.location,
+            slot?.name,
+            slot?.category
+          ),
+        });
+        sent++;
+      } catch (emailError) {
+        console.error(
+          'Error sending blast reminder to:',
+          signup.userEmail,
+          emailError
+        );
+      }
+    }
+
+    return { sent };
+  }
+);
