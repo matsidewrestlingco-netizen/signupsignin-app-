@@ -5,6 +5,10 @@ vi.mock('../../contexts/AuthContext', () => ({
   useAuth: vi.fn(),
 }));
 
+vi.mock('../../contexts/OrgContext', () => ({
+  useOrg: vi.fn(() => ({ currentOrg: null, loading: false })),
+}));
+
 vi.mock('react-router-dom', () => ({
   useLocation: vi.fn(() => ({ pathname: '/test', search: '', hash: '', state: null, key: '' })),
   Navigate: ({ to }: { to: string }) => <div data-testid="navigate">{`Navigate to ${to}`}</div>,
