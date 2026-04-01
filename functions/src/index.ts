@@ -11,6 +11,10 @@ const db = admin.firestore();
 const resendApiKey = defineSecret('RESEND_API_KEY');
 const FROM_ADDRESS = 'noreply@alerts.signupsignin.com';
 
+function sanitizeFromName(name: string): string {
+  return name.replace(/[\r\n"<>]/g, '');
+}
+
 interface SignupData {
   eventId: string;
   slotId: string;
@@ -77,7 +81,7 @@ function buildReminderHtml(
     <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; margin: 16px 0;">
       <strong style="font-size: 18px;">${escapeHtml(eventTitle)}</strong><br/>
       <span style="color: #666;">
-        ${formattedDate} at ${formattedTime}<br/>
+        ${escapeHtml(formattedDate)} at ${escapeHtml(formattedTime)}<br/>
         ${location ? `Location: ${escapeHtml(location)}<br/>` : ''}
         ${slotName ? `Your role: ${escapeHtml(slotName)}${slotCategory ? ` (${escapeHtml(slotCategory)})` : ''}` : ''}
       </span>
@@ -141,7 +145,7 @@ export const onSignupCreated = onDocumentCreated(
         : '';
 
       await resend.emails.send({
-        from: `${org.name} via SignupSignin <${FROM_ADDRESS}>`,
+        from: `${sanitizeFromName(org.name)} via SignupSignin <${FROM_ADDRESS}>`,
         to: signup.userEmail,
         subject: `Signup Confirmation: ${eventData.title}`,
         html: `
@@ -240,7 +244,7 @@ export const sendReminderEmails = onSchedule(
 
             try {
               await resend.emails.send({
-                from: `${org.name} via SignupSignin <${FROM_ADDRESS}>`,
+                from: `${sanitizeFromName(org.name)} via SignupSignin <${FROM_ADDRESS}>`,
                 to: signup.userEmail,
                 subject: formatReminderSubject(eventData.title, reminderHours),
                 html: buildReminderHtml(
@@ -301,20 +305,25 @@ export const sendTestEmail = onCall(
       throw new HttpsError('not-found', 'Organization not found');
     }
 
-    await resend.emails.send({
-      from: `${org.name} via SignupSignin <${FROM_ADDRESS}>`,
-      to: email,
-      subject: 'Test Email from SignupSignin',
-      html: `
-        <h2>Test Email</h2>
-        <p>Email notifications are working correctly for <strong>${escapeHtml(org.name)}</strong>.</p>
-        <p>Your volunteers will receive signup confirmations and event reminders.</p>
-        <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" />
-        <p style="color: #999; font-size: 12px;">
-          This test was sent by ${escapeHtml(org.name)} via SignupSignin.
-        </p>
-      `,
-    });
+    try {
+      await resend.emails.send({
+        from: `${sanitizeFromName(org.name)} via SignupSignin <${FROM_ADDRESS}>`,
+        to: email,
+        subject: 'Test Email from SignupSignin',
+        html: `
+      <h2>Test Email</h2>
+      <p>Email notifications are working correctly for <strong>${escapeHtml(org.name)}</strong>.</p>
+      <p>Your volunteers will receive signup confirmations and event reminders.</p>
+      <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" />
+      <p style="color: #999; font-size: 12px;">
+        This test was sent by ${escapeHtml(org.name)} via SignupSignin.
+      </p>
+    `,
+      });
+    } catch (error) {
+      console.error('Error sending test email:', error);
+      throw new HttpsError('internal', 'Failed to send test email');
+    }
 
     return { success: true };
   }
@@ -387,7 +396,7 @@ export const sendEventReminderBlast = onCall(
 
       try {
         await resend.emails.send({
-          from: `${org.name} via SignupSignin <${FROM_ADDRESS}>`,
+          from: `${sanitizeFromName(org.name)} via SignupSignin <${FROM_ADDRESS}>`,
           to: signup.userEmail,
           subject: `Reminder: ${eventData.title}`,
           html: buildReminderHtml(
