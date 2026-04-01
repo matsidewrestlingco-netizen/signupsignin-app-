@@ -279,7 +279,7 @@ export const sendReminderEmails = onSchedule(
 
 // HTTP callable to send a test email from the admin Settings page
 export const sendTestEmail = onCall(
-  { secrets: [resendApiKey] },
+  { secrets: [resendApiKey], invoker: 'public' },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError('unauthenticated', 'Must be logged in');
@@ -331,7 +331,7 @@ export const sendTestEmail = onCall(
 
 // HTTP callable to blast a reminder to all signups for a specific event
 export const sendEventReminderBlast = onCall(
-  { secrets: [resendApiKey] },
+  { secrets: [resendApiKey], invoker: 'public' },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError('unauthenticated', 'Must be logged in');
