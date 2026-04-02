@@ -13,8 +13,7 @@ import { useOrg } from '../../contexts/OrgContext';
 import { useEvents } from '../../hooks/useEvents';
 import { useMySignups } from '../../hooks/useSignups';
 import { formatEventDate } from '../../lib/dateUtils';
-import type { Event } from '../../lib/types';
-import type { Signup } from '../../lib/types';
+import type { Event, Signup } from '../../lib/types';
 
 type EnrichedSignup = Signup & { event: Event | null };
 

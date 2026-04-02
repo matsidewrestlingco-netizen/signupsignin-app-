@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 
 jest.mock('../../lib/firebase', () => ({ db: {}, auth: {}, functions: {} }));
 jest.mock('react-native-safe-area-context', () => ({
@@ -26,13 +27,14 @@ jest.mock('../../hooks/useEvents', () => ({
 }));
 
 const mockCancelSignup = jest.fn().mockResolvedValue(undefined);
+let mockSignups = [
+  { id: 's1', eventId: 'e1', slotId: 'slot1', userId: 'user1',
+    userName: 'Alice', userEmail: 'alice@test.com', note: '',
+    checkedIn: false, createdAt: new Date() },
+];
 jest.mock('../../hooks/useSignups', () => ({
   useMySignups: () => ({
-    signups: [
-      { id: 's1', eventId: 'e1', slotId: 'slot1', userId: 'user1',
-        userName: 'Alice', userEmail: 'alice@test.com', note: '',
-        checkedIn: false, createdAt: new Date() },
-    ],
+    get signups() { return mockSignups; },
     loading: false,
     cancelSignup: mockCancelSignup,
   }),
@@ -41,6 +43,16 @@ jest.mock('../../hooks/useSignups', () => ({
 import VolunteerMySignups from '../../app/(volunteer)/my-signups';
 
 describe('VolunteerMySignups', () => {
+  beforeEach(() => {
+    mockSignups = [
+      { id: 's1', eventId: 'e1', slotId: 'slot1', userId: 'user1',
+        userName: 'Alice', userEmail: 'alice@test.com', note: '',
+        checkedIn: false, createdAt: new Date() },
+    ];
+    jest.clearAllMocks();
+    jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+  });
+
   it('renders header', () => {
     const { getByText } = render(<VolunteerMySignups />);
     expect(getByText('My Signups')).toBeTruthy();
@@ -56,12 +68,19 @@ describe('VolunteerMySignups', () => {
     expect(getByText('Cancel')).toBeTruthy();
   });
 
-  it('shows empty state when no signups', () => {
-    // Re-mock with empty signups
-    // Note: resetModules cannot re-mock already-imported modules; component re-renders
-    // with existing mocks. Just verify the component renders without crash.
-    // Just verify the component renders without crash with mocked empty state
+  it('pressing Cancel triggers Alert.alert', () => {
     const { getByText } = render(<VolunteerMySignups />);
-    expect(getByText('My Signups')).toBeTruthy();
+    fireEvent.press(getByText('Cancel'));
+    expect(Alert.alert).toHaveBeenCalledWith(
+      expect.stringMatching(/cancel/i),
+      expect.any(String),
+      expect.any(Array)
+    );
+  });
+
+  it('shows empty state when no signups', () => {
+    mockSignups = [];
+    const { getByText } = render(<VolunteerMySignups />);
+    expect(getByText('No signups yet')).toBeTruthy();
   });
 });
