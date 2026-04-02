@@ -15,17 +15,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOrg } from '../../contexts/OrgContext';
 import { useEvents } from '../../hooks/useEvents';
 import { useSlots } from '../../hooks/useSlots';
+import { useSignups } from '../../hooks/useSignups';
 import { useEventSlotCounts } from '../../hooks/useEventSlotCounts';
 import { EventCard } from '../../components/EventCard';
 import { StatusBadge } from '../../components/StatusBadge';
-import type { Event, EventInput, Slot, SlotInput } from '../../lib/types';
+import type { Event, EventInput, Slot, SlotInput, Signup } from '../../lib/types';
 import { formatEventDate } from '../../lib/dateUtils';
 import { sendEventNotification } from '../../lib/notifications';
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 
 export default function AdminEvents() {
-  const [view, setView] = useState<'list' | 'create' | 'detail'>('list');
+  const [view, setView] = useState<'list' | 'create' | 'detail' | 'roster'>('list');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
   const { currentOrg } = useOrg();
@@ -33,6 +34,10 @@ export default function AdminEvents() {
     currentOrg?.id
   );
   const { slots, loading: slotsLoading, createSlot, deleteSlot } = useSlots(
+    currentOrg?.id,
+    selectedEvent?.id
+  );
+  const { signups, loading: signupsLoading, checkIn, undoCheckIn } = useSignups(
     currentOrg?.id,
     selectedEvent?.id
   );
@@ -108,11 +113,27 @@ export default function AdminEvents() {
           setSelectedEvent(null);
           setView('list');
         }}
+        onRoster={() => setView('roster')}
         createSlot={createSlot}
         deleteSlot={deleteSlot}
         sendNotification={(title, body) =>
           sendEventNotification(currentOrg!.id, selectedEvent!.id, title, body)
         }
+      />
+    );
+  }
+
+  if (view === 'roster' && selectedEvent) {
+    return (
+      <RosterView
+        event={selectedEvent}
+        slots={slots}
+        slotsLoading={slotsLoading}
+        signups={signups}
+        signupsLoading={signupsLoading}
+        onBack={() => setView('detail')}
+        checkIn={checkIn}
+        undoCheckIn={undoCheckIn}
       />
     );
   }
@@ -293,6 +314,7 @@ interface DetailViewProps {
   slotsLoading: boolean;
   onBack: () => void;
   onDelete: () => Promise<void>;
+  onRoster: () => void;
   createSlot: (data: SlotInput) => Promise<string>;
   deleteSlot: (slotId: string) => Promise<void>;
   sendNotification: (title: string, body: string) => Promise<{ sent: number; failed: number }>;
@@ -304,6 +326,7 @@ function DetailView({
   slotsLoading,
   onBack,
   onDelete,
+  onRoster,
   createSlot,
   deleteSlot,
   sendNotification,
@@ -443,6 +466,15 @@ function DetailView({
             </Text>
           </View>
         </View>
+
+        {/* Day-Of Roster */}
+        <TouchableOpacity
+          style={s.rosterBtn}
+          onPress={onRoster}
+          activeOpacity={0.7}
+        >
+          <Text style={s.rosterBtnText}>📋 Day-Of Roster</Text>
+        </TouchableOpacity>
 
         {/* Notify volunteers */}
         {notifyResult ? (
@@ -608,6 +640,144 @@ function DetailView({
               </TouchableOpacity>
             </View>
           ))
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+// ─── Roster View ─────────────────────────────────────────────────────────────
+
+interface RosterViewProps {
+  event: Event;
+  slots: Slot[];
+  slotsLoading: boolean;
+  signups: Signup[];
+  signupsLoading: boolean;
+  onBack: () => void;
+  checkIn: (signupId: string) => Promise<void>;
+  undoCheckIn: (signupId: string) => Promise<void>;
+}
+
+function RosterView({
+  event,
+  slots,
+  slotsLoading,
+  signups,
+  signupsLoading,
+  onBack,
+  checkIn,
+  undoCheckIn,
+}: RosterViewProps) {
+  const [actioning, setActioning] = useState<string | null>(null);
+
+  const checkedInCount = signups.filter((sg) => sg.checkedIn).length;
+
+  async function handleCheckIn(signupId: string) {
+    setActioning(signupId);
+    try { await checkIn(signupId); } finally { setActioning(null); }
+  }
+
+  async function handleUndoCheckIn(signupId: string) {
+    setActioning(signupId);
+    try { await undoCheckIn(signupId); } finally { setActioning(null); }
+  }
+
+  return (
+    <SafeAreaView style={s.root} edges={['top']}>
+      {/* Header */}
+      <View style={s.detailHeader}>
+        <TouchableOpacity style={s.backBtn} onPress={onBack} activeOpacity={0.7}>
+          <Text style={s.backBtnText}>‹</Text>
+        </TouchableOpacity>
+        <Text style={s.detailTitle} numberOfLines={1}>Day-Of Roster</Text>
+        <View style={s.headerSpacer} />
+      </View>
+
+      {/* Summary bar */}
+      <View style={s.rosterSummaryBar}>
+        <Text style={s.rosterSummaryTitle} numberOfLines={1}>{event.title}</Text>
+        <Text style={s.rosterSummaryCount}>
+          {signups.length} volunteer{signups.length !== 1 ? 's' : ''} · {checkedInCount} checked in
+        </Text>
+      </View>
+
+      <ScrollView style={s.detailScroll} contentContainerStyle={s.detailContent}>
+        {slotsLoading || signupsLoading ? (
+          <ActivityIndicator color="#1a56db" style={s.centered} />
+        ) : slots.length === 0 ? (
+          <Text style={s.emptySlotsText}>No slots have been added to this event yet.</Text>
+        ) : (
+          slots.map((slot) => {
+            const slotSignups = signups.filter((sg) => sg.slotId === slot.id);
+            const openSpots = Math.max(0, slot.quantityTotal - slotSignups.length);
+
+            return (
+              <View key={slot.id} style={s.rosterSlotBlock}>
+                {/* Slot header */}
+                <View style={s.rosterSlotHeader}>
+                  <View style={s.rosterSlotTitleRow}>
+                    <Text style={s.rosterSlotName}>{slot.name}</Text>
+                    <View style={s.categoryChip}>
+                      <Text style={s.categoryChipText}>{slot.category}</Text>
+                    </View>
+                  </View>
+                  <View style={s.rosterFillBadge}>
+                    <Text style={s.rosterFillBadgeText}>
+                      {slotSignups.length}/{slot.quantityTotal}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Signed-up volunteers */}
+                {slotSignups.map((signup) => (
+                  <View key={signup.id} style={s.rosterPersonRow}>
+                    <View style={s.rosterPersonInfo}>
+                      <Text style={s.rosterPersonName}>{signup.userName}</Text>
+                      {signup.checkedIn && signup.checkedInAt ? (
+                        <Text style={s.rosterCheckedInTime}>
+                          {signup.checkedInAt.toLocaleTimeString([], {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                          })}
+                        </Text>
+                      ) : null}
+                    </View>
+
+                    {actioning === signup.id ? (
+                      <ActivityIndicator size="small" color="#1a56db" />
+                    ) : signup.checkedIn ? (
+                      <View style={s.rosterCheckedInArea}>
+                        <Text style={s.rosterCheckedInLabel}>✓ Checked In</Text>
+                        <TouchableOpacity
+                          onPress={() => handleUndoCheckIn(signup.id)}
+                          activeOpacity={0.7}
+                          style={s.rosterUndoBtn}
+                        >
+                          <Text style={s.rosterUndoBtnText}>Undo</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ) : (
+                      <TouchableOpacity
+                        style={s.rosterCheckInBtn}
+                        onPress={() => handleCheckIn(signup.id)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={s.rosterCheckInBtnText}>Check In</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                ))}
+
+                {/* Open spots */}
+                {Array.from({ length: openSpots }).map((_, i) => (
+                  <View key={`open-${i}`} style={[s.rosterPersonRow, s.rosterOpenRow]}>
+                    <Text style={s.rosterOpenText}>— open —</Text>
+                  </View>
+                ))}
+              </View>
+            );
+          })
         )}
       </ScrollView>
     </SafeAreaView>
@@ -1009,4 +1179,146 @@ const s = StyleSheet.create({
   notifySendBtnDisabled: { opacity: 0.6 },
   notifySendText: { color: '#fff', fontWeight: '600', fontSize: 14 },
   notifyResult: { color: '#059669', fontSize: 13, textAlign: 'center', marginBottom: 12 },
+
+  // Day-Of Roster button (in DetailView)
+  rosterBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1a56db',
+    borderRadius: 8,
+    paddingVertical: 11,
+    marginBottom: 10,
+  },
+  rosterBtnText: {
+    color: '#ffffff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+
+  // Roster view — summary bar
+  rosterSummaryBar: {
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  rosterSummaryTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 2,
+  },
+  rosterSummaryCount: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+
+  // Roster view — slot blocks
+  rosterSlotBlock: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    marginBottom: 12,
+    overflow: 'hidden',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  rosterSlotHeader: {
+    backgroundColor: '#eff6ff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  rosterSlotTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  rosterSlotName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1e3a8a',
+  },
+  rosterFillBadge: {
+    backgroundColor: '#1a56db',
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  rosterFillBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+
+  // Roster view — person rows
+  rosterPersonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+    minHeight: 52,
+  },
+  rosterPersonInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  rosterPersonName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  rosterCheckedInTime: {
+    fontSize: 12,
+    color: '#059669',
+  },
+  rosterCheckedInArea: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  rosterCheckedInLabel: {
+    fontSize: 13,
+    color: '#059669',
+    fontWeight: '600',
+  },
+  rosterUndoBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  rosterUndoBtnText: {
+    fontSize: 13,
+    color: '#6b7280',
+    fontWeight: '500',
+  },
+  rosterCheckInBtn: {
+    backgroundColor: '#1a56db',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+  },
+  rosterCheckInBtnText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+
+  // Roster view — open spot rows
+  rosterOpenRow: {
+    backgroundColor: '#fafafa',
+  },
+  rosterOpenText: {
+    fontSize: 14,
+    color: '#9ca3af',
+    fontStyle: 'italic',
+  },
 });

@@ -35,6 +35,19 @@ jest.mock('../../hooks/useSlots', () => ({
     deleteSlot: jest.fn().mockResolvedValue(undefined),
   }),
 }));
+jest.mock('../../hooks/useSignups', () => ({
+  useSignups: () => ({
+    signups: [], loading: false, error: null,
+    createSignup: jest.fn().mockResolvedValue('sg1'),
+    checkIn: jest.fn().mockResolvedValue(undefined),
+    undoCheckIn: jest.fn().mockResolvedValue(undefined),
+    cancelSignup: jest.fn().mockResolvedValue(undefined),
+  }),
+  useMySignups: () => ({
+    signups: [], loading: false, error: null,
+    cancelSignup: jest.fn().mockResolvedValue(undefined),
+  }),
+}));
 
 import AdminEvents from '../../app/(admin)/events';
 
