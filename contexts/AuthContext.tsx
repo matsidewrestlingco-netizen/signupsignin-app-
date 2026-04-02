@@ -63,6 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       name,
       createdAt: serverTimestamp(),
       organizations: {},
+      superAdmin: false,
     });
     await fetchUserProfile(user);
   }
@@ -90,8 +91,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let active = true;
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!active) return;
-      setCurrentUser(user);
       if (user) setLoading(true);
+      setCurrentUser(user);
       if (user) {
         try {
           await fetchUserProfile(user);

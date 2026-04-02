@@ -7,8 +7,8 @@ jest.mock('../lib/firebase', () => ({
 jest.mock('firebase/auth', () => ({
   onAuthStateChanged: jest.fn((auth, callback) => { callback(null); return jest.fn(); }),
   createUserWithEmailAndPassword: jest.fn(),
-  signInWithEmailAndPassword: jest.fn(),
-  signOut: jest.fn(),
+  signInWithEmailAndPassword: jest.fn().mockResolvedValue({}),
+  signOut: jest.fn().mockResolvedValue(undefined),
   sendPasswordResetEmail: jest.fn(),
 }));
 
@@ -42,7 +42,8 @@ describe('AuthContext', () => {
       </AuthProvider>
     );
     // loading may be true initially; component should not throw
-    expect(screen.getByTestId('user')).toBeTruthy();
+    expect(screen.getByTestId('user')).toHaveTextContent('null');
+    expect(screen.getByTestId('loading')).toHaveTextContent('false');
   });
 
   it('throws when useAuth is used outside AuthProvider', () => {
@@ -51,5 +52,39 @@ describe('AuthContext', () => {
       'useAuth must be used within an AuthProvider'
     );
     spy.mockRestore();
+  });
+
+  it('logIn calls signInWithEmailAndPassword with correct args', async () => {
+    const { signInWithEmailAndPassword } = require('firebase/auth');
+    let logInFn: ((email: string, password: string) => Promise<void>) | undefined;
+    function CaptureLogIn() {
+      const auth = useAuth();
+      logInFn = auth.logIn;
+      return <Text>test</Text>;
+    }
+    render(<AuthProvider><CaptureLogIn /></AuthProvider>);
+    await act(async () => {
+      await logInFn!('test@example.com', 'password123');
+    });
+    expect(signInWithEmailAndPassword).toHaveBeenCalledWith(
+      expect.anything(),
+      'test@example.com',
+      'password123'
+    );
+  });
+
+  it('logOut calls signOut', async () => {
+    const { signOut } = require('firebase/auth');
+    let logOutFn: (() => Promise<void>) | undefined;
+    function CaptureLogOut() {
+      const auth = useAuth();
+      logOutFn = auth.logOut;
+      return <Text>test</Text>;
+    }
+    render(<AuthProvider><CaptureLogOut /></AuthProvider>);
+    await act(async () => {
+      await logOutFn!();
+    });
+    expect(signOut).toHaveBeenCalled();
   });
 });
