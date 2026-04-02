@@ -29,7 +29,7 @@ export default function VolunteerEvents() {
   const { currentOrg } = useOrg();
   const { events, loading: eventsLoading } = useEvents(currentOrg?.id);
   const { slots, loading: slotsLoading } = useSlots(currentOrg?.id, selectedEvent?.id);
-  const { signups: eventSignups, createSignup } = useSignups(currentOrg?.id, selectedEvent?.id);
+  const { createSignup } = useSignups(currentOrg?.id, selectedEvent?.id);
   const { signups: mySignups } = useMySignups(currentOrg?.id, currentUser?.uid);
 
   const publicEvents = events

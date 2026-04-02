@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 
 jest.mock('../../lib/firebase', () => ({ db: {}, auth: {}, functions: {} }));
 jest.mock('react-native-safe-area-context', () => ({
@@ -69,8 +69,10 @@ describe('VolunteerEvents', () => {
     const { getByText } = render(<VolunteerEvents />);
     fireEvent.press(getByText('Spring Tournament'));
     fireEvent.press(getByText('Sign Up'));
-    expect(mockCreateSignup).toHaveBeenCalledWith(
-      expect.objectContaining({ slotId: 'slot1', userId: 'user1' })
-    );
+    await waitFor(() => {
+      expect(mockCreateSignup).toHaveBeenCalledWith(
+        expect.objectContaining({ slotId: 'slot1', userId: 'user1' })
+      );
+    });
   });
 });
