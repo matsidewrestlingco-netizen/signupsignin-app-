@@ -81,9 +81,9 @@ function ScannerView({ signups, checkIn }: ScannerViewProps) {
           <View
             style={[
               sc.resultOverlay,
-              scanResult.status === 'success' && { backgroundColor: '#059669' },
-              scanResult.status === 'already' && { backgroundColor: '#d97706' },
-              scanResult.status === 'not-found' && { backgroundColor: '#dc2626' },
+              scanResult.status === 'success' && sc.resultSuccess,
+              scanResult.status === 'already' && sc.resultAlready,
+              scanResult.status === 'not-found' && sc.resultNotFound,
             ]}
           >
             <Text style={sc.resultIcon}>
@@ -211,7 +211,7 @@ export default function AdminCheckIn() {
     if (!selectedEventId && events.length > 0) {
       setSelectedEventId(events[0].id);
     }
-  }, [events]);
+  }, [events, selectedEventId]);
 
   return (
     <SafeAreaView edges={['top']}>
@@ -453,6 +453,9 @@ const sc = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 32,
   },
+  resultSuccess: { backgroundColor: '#059669' },
+  resultAlready: { backgroundColor: '#d97706' },
+  resultNotFound: { backgroundColor: '#dc2626' },
   resultIcon: {
     fontSize: 64,
     color: '#ffffff',
