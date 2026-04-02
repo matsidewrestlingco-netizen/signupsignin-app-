@@ -214,7 +214,7 @@ export default function AdminCheckIn() {
   }, [events, selectedEventId]);
 
   return (
-    <SafeAreaView edges={['top']}>
+    <SafeAreaView edges={['top']} style={s.safeArea}>
       <View style={s.root}>
         {/* Header */}
         <View style={s.header}>
@@ -300,6 +300,9 @@ export default function AdminCheckIn() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   root: {
     flex: 1,
     backgroundColor: '#f9fafb',
