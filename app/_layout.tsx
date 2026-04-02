@@ -3,9 +3,11 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { OrgProvider } from '../contexts/OrgContext';
 import { LoadingScreen } from '../components/LoadingScreen';
+import { usePushNotifications } from '../hooks/usePushNotifications';
 
 function RootLayoutNav() {
   const { currentUser, userProfile, loading } = useAuth();
+  usePushNotifications(currentUser?.uid);
   const router = useRouter();
   const segments = useSegments();
 
