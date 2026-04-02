@@ -19,6 +19,7 @@ import { EventCard } from '../../components/EventCard';
 import { StatusBadge } from '../../components/StatusBadge';
 import type { Event, EventInput, Slot, SlotInput } from '../../lib/types';
 import { formatEventDate } from '../../lib/dateUtils';
+import { sendEventNotification } from '../../lib/notifications';
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 
@@ -107,6 +108,9 @@ export default function AdminEvents() {
         }}
         createSlot={createSlot}
         deleteSlot={deleteSlot}
+        sendNotification={(title, body) =>
+          sendEventNotification(currentOrg!.id, selectedEvent!.id, title, body)
+        }
       />
     );
   }
@@ -289,6 +293,7 @@ interface DetailViewProps {
   onDelete: () => Promise<void>;
   createSlot: (data: SlotInput) => Promise<string>;
   deleteSlot: (slotId: string) => Promise<void>;
+  sendNotification: (title: string, body: string) => Promise<{ sent: number; failed: number }>;
 }
 
 function DetailView({
@@ -299,8 +304,13 @@ function DetailView({
   onDelete,
   createSlot,
   deleteSlot,
+  sendNotification,
 }: DetailViewProps) {
   const [showAddSlot, setShowAddSlot] = useState(false);
+  const [showNotifyForm, setShowNotifyForm] = useState(false);
+  const [notifyMessage, setNotifyMessage] = useState('');
+  const [notifySending, setNotifySending] = useState(false);
+  const [notifyResult, setNotifyResult] = useState<string | null>(null);
   const [slotName, setSlotName] = useState('');
   const [slotCategory, setSlotCategory] = useState('');
   const [slotQuantity, setSlotQuantity] = useState('1');
@@ -371,6 +381,24 @@ function DetailView({
     }
   }
 
+  async function handleNotify() {
+    if (!notifyMessage.trim()) return;
+    setNotifySending(true);
+    setNotifyResult(null);
+    try {
+      const result = await sendNotification(event.title, notifyMessage.trim());
+      setNotifyResult(`Sent to ${result.sent} volunteer${result.sent !== 1 ? 's' : ''}`);
+      setNotifyMessage('');
+      setShowNotifyForm(false);
+      setTimeout(() => setNotifyResult(null), 4000);
+    } catch {
+      setNotifyResult('Failed to send notifications');
+      setTimeout(() => setNotifyResult(null), 4000);
+    } finally {
+      setNotifySending(false);
+    }
+  }
+
   const totalSlots = slots.reduce((sum, s) => sum + s.quantityTotal, 0);
   const filledSlots = slots.reduce((sum, s) => sum + s.quantityFilled, 0);
 
@@ -413,6 +441,51 @@ function DetailView({
             </Text>
           </View>
         </View>
+
+        {/* Notify volunteers */}
+        {notifyResult ? (
+          <Text style={s.notifyResult}>{notifyResult}</Text>
+        ) : null}
+        {showNotifyForm ? (
+          <View style={s.notifyForm}>
+            <TextInput
+              style={s.notifyInput}
+              placeholder="Message to volunteers..."
+              value={notifyMessage}
+              onChangeText={setNotifyMessage}
+              multiline
+              numberOfLines={2}
+            />
+            <View style={s.notifyFormBtns}>
+              <TouchableOpacity
+                style={s.notifyCancelBtn}
+                onPress={() => { setShowNotifyForm(false); setNotifyMessage(''); }}
+                activeOpacity={0.7}
+              >
+                <Text style={s.notifyCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.notifySendBtn, notifySending && s.notifySendBtnDisabled]}
+                onPress={handleNotify}
+                disabled={notifySending}
+                activeOpacity={0.7}
+              >
+                {notifySending
+                  ? <ActivityIndicator color="#fff" size="small" />
+                  : <Text style={s.notifySendText}>Send</Text>
+                }
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={s.notifyBtn}
+            onPress={() => setShowNotifyForm(true)}
+            activeOpacity={0.7}
+          >
+            <Text style={s.notifyBtnText}>📢 Notify Volunteers</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Slots section */}
         <View style={s.slotsSectionHeader}>
@@ -893,4 +966,45 @@ const s = StyleSheet.create({
     color: '#dc2626',
     fontWeight: '700',
   },
+
+  // Notify volunteers
+  notifyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#1a56db',
+    borderRadius: 8,
+    paddingVertical: 10,
+    marginBottom: 16,
+    backgroundColor: '#fff',
+  },
+  notifyBtnText: { color: '#1a56db', fontWeight: '600', fontSize: 14 },
+  notifyForm: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+  },
+  notifyInput: {
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: '#111827',
+    minHeight: 60,
+    textAlignVertical: 'top',
+    marginBottom: 8,
+  },
+  notifyFormBtns: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 },
+  notifyCancelBtn: { paddingVertical: 8, paddingHorizontal: 16 },
+  notifyCancelText: { color: '#6b7280', fontSize: 14 },
+  notifySendBtn: { backgroundColor: '#1a56db', borderRadius: 6, paddingVertical: 8, paddingHorizontal: 20 },
+  notifySendBtnDisabled: { opacity: 0.6 },
+  notifySendText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+  notifyResult: { color: '#059669', fontSize: 13, textAlign: 'center', marginBottom: 12 },
 });
