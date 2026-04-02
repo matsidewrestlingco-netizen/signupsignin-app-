@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +15,8 @@ import {
 import { Link, useRouter } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
 
+WebBrowser.maybeCompleteAuthSession();
+
 export function LoginScreen() {
   const { logIn } = useAuth();
   const router = useRouter();
@@ -20,6 +24,25 @@ export function LoginScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const { signInWithGoogle } = useAuth();
+
+  const [_request, googleResponse, promptGoogleAsync] = Google.useAuthRequest({
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    scopes: ['profile', 'email'],
+  });
+
+  useEffect(() => {
+    if (googleResponse?.type === 'success') {
+      const idToken = googleResponse.params?.id_token ?? googleResponse.authentication?.idToken ?? null;
+      const accessToken = googleResponse.authentication?.accessToken ?? null;
+      setSubmitting(true);
+      signInWithGoogle(idToken, accessToken)
+        .catch(() => setError('Google sign-in failed. Please try again.'))
+        .finally(() => setSubmitting(false));
+    }
+  }, [googleResponse]);
 
   async function handleSubmit() {
     setError('');
@@ -87,6 +110,20 @@ export function LoginScreen() {
             }
           </TouchableOpacity>
 
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <TouchableOpacity
+            style={styles.googleButton}
+            onPress={() => promptGoogleAsync()}
+            disabled={submitting}
+          >
+            <Text style={styles.googleButtonText}>Continue with Google</Text>
+          </TouchableOpacity>
+
           <Link href="/(auth)/forgot-password" style={styles.link}>
             Forgot password?
           </Link>
@@ -140,4 +177,16 @@ const styles = StyleSheet.create({
   link: { color: '#1a56db', fontSize: 14, fontWeight: '500' },
   row: { flexDirection: 'row', justifyContent: 'center', marginTop: 16 },
   mutedText: { color: '#6b7280', fontSize: 14 },
+  divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 16 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: '#e5e7eb' },
+  dividerText: { color: '#9ca3af', fontSize: 13, marginHorizontal: 10 },
+  googleButton: {
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  googleButtonText: { color: '#374151', fontSize: 16, fontWeight: '500' },
 });

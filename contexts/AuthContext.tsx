@@ -8,6 +8,7 @@ import {
   sendPasswordResetEmail,
 } from 'firebase/auth';
 import type { User } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import type { UserProfile } from '../lib/types';
@@ -22,6 +23,7 @@ interface AuthContextType {
   logOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   refreshProfile: () => Promise<void>;
+  signInWithGoogle: (idToken: string | null, accessToken?: string | null) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -87,6 +89,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function signInWithGoogle(idToken: string | null, accessToken?: string | null) {
+    const credential = GoogleAuthProvider.credential(idToken, accessToken);
+    await signInWithCredential(auth, credential);
+  }
+
   useEffect(() => {
     let active = true;
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -120,6 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logOut,
     resetPassword,
     refreshProfile,
+    signInWithGoogle,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -6,8 +6,17 @@ import { LoginScreen } from '../app/(auth)/login';
 jest.mock('../contexts/AuthContext', () => ({
   useAuth: () => ({
     logIn: jest.fn().mockRejectedValue(new Error('auth/invalid-credential')),
+    signInWithGoogle: jest.fn(),
     loading: false,
   }),
+}));
+
+jest.mock('expo-auth-session/providers/google', () => ({
+  useAuthRequest: jest.fn(() => [null, null, jest.fn()]),
+}));
+
+jest.mock('expo-web-browser', () => ({
+  maybeCompleteAuthSession: jest.fn(),
 }));
 
 // Mock expo-router
