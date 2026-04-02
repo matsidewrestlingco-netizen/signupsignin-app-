@@ -6,12 +6,14 @@ import { useOrg } from '../../contexts/OrgContext';
 import { useEvents } from '../../hooks/useEvents';
 import { EventCard } from '../../components/EventCard';
 import { LoadingScreen } from '../../components/LoadingScreen';
+import { useEventSlotCounts } from '../../hooks/useEventSlotCounts';
 
 export default function AdminDashboard() {
   const router = useRouter();
   const { userProfile } = useAuth();
   const { currentOrg, loading: orgLoading } = useOrg();
   const { events, loading: eventsLoading } = useEvents(currentOrg?.id);
+  const slotCounts = useEventSlotCounts(currentOrg?.id, events.map((e) => e.id));
 
   if (orgLoading) {
     return <LoadingScreen />;
@@ -88,8 +90,8 @@ export default function AdminDashboard() {
             <EventCard
               key={event.id}
               event={event}
-              totalSlots={0}
-              filledSlots={0}
+              totalSlots={slotCounts[event.id]?.total ?? 0}
+              filledSlots={slotCounts[event.id]?.filled ?? 0}
               onPress={() => router.push('/(admin)/events')}
             />
           ))

@@ -15,6 +15,7 @@ import { useMySignups } from '../../hooks/useSignups';
 import { EventCard } from '../../components/EventCard';
 import { LoadingScreen } from '../../components/LoadingScreen';
 import { formatEventDate } from '../../lib/dateUtils';
+import { useEventSlotCounts } from '../../hooks/useEventSlotCounts';
 
 export default function VolunteerDashboard() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function VolunteerDashboard() {
   const { currentOrg, loading: orgLoading } = useOrg();
   const { events, loading: eventsLoading } = useEvents(currentOrg?.id);
   const { signups } = useMySignups(currentOrg?.id, currentUser?.uid);
+  const slotCounts = useEventSlotCounts(currentOrg?.id, events.map((e) => e.id));
 
   if (orgLoading) {
     return <LoadingScreen />;
@@ -109,8 +111,8 @@ export default function VolunteerDashboard() {
               <EventCard
                 key={event.id}
                 event={event}
-                totalSlots={0}
-                filledSlots={0}
+                totalSlots={slotCounts[event.id]?.total ?? 0}
+                filledSlots={slotCounts[event.id]?.filled ?? 0}
                 onPress={() => router.push('/(volunteer)/events')}
               />
             ))
