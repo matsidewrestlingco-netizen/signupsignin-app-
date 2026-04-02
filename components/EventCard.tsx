@@ -20,7 +20,7 @@ function formatEventDate(date: Date): string {
   const minutes = date.getMinutes();
   const ampm = hours >= 12 ? 'PM' : 'AM';
   const displayHour = hours % 12 === 0 ? 12 : hours % 12;
-  const displayMinutes = minutes === 0 ? '' : `:${String(minutes).padStart(2, '0')}`;
+  const displayMinutes = `:${String(minutes).padStart(2, '0')}`;
   return `${day}, ${month} ${dateNum} at ${displayHour}${displayMinutes} ${ampm}`;
 }
 
