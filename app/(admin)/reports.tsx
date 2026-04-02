@@ -366,12 +366,14 @@ export default function AdminReports() {
 
             <Text style={s.fieldLabel}>Organization Type</Text>
             <TextInput
-              style={s.input}
+              style={[s.input, s.orgTypeInput]}
               value={orgType}
               onChangeText={setOrgType}
               placeholder="e.g. Wrestling"
               placeholderTextColor="#9ca3af"
+              editable={false}
             />
+            <Text style={s.helperText}>Contact support to change organization type</Text>
 
             {orgSaved ? <Text style={s.savedMsg}>Saved!</Text> : null}
 
@@ -700,6 +702,15 @@ const s = StyleSheet.create({
   inputDisabled: {
     backgroundColor: '#f3f4f6',
     color: '#9ca3af',
+  },
+  orgTypeInput: {
+    backgroundColor: '#f3f4f6',
+  },
+  helperText: {
+    fontSize: 11,
+    color: '#9ca3af',
+    marginTop: 2,
+    marginBottom: 8,
   },
   fieldError: {
     fontSize: 12,
