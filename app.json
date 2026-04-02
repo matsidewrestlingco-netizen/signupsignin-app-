@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "signupsignin-mobile",
+    "name": "SignupSignin",
     "slug": "signupsignin-mobile",
     "scheme": "signupsignin",
     "version": "1.0.0",
@@ -30,7 +30,28 @@
     },
     "plugins": [
       "expo-router",
-      "expo-barcode-scanner"
-    ]
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow SignupSignin to access your camera to scan volunteer QR codes."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#1a56db"
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Allow SignupSignin to add events to your calendar."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }

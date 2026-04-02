@@ -2,15 +2,16 @@
   "name": "signupsignin-mobile",
   "version": "1.0.0",
   "main": "expo-router/entry",
-  "jest": {
-    "preset": "jest-expo",
-    "setupFilesAfterEnv": ["@testing-library/jest-native/extend-expect"]
-  },
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "test": "jest"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "setupFilesAfterEnv": ["@testing-library/jest-native/extend-expect"]
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",
