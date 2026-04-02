@@ -1,27 +1,13 @@
 import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Event } from '../lib/types';
 import { StatusBadge } from './StatusBadge';
+import { formatEventDate } from '../lib/dateUtils';
 
 interface EventCardProps {
   event: Event;
   totalSlots: number;
   filledSlots: number;
   onPress: () => void;
-}
-
-const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-function formatEventDate(date: Date): string {
-  const day = DAY_NAMES[date.getDay()];
-  const month = MONTH_NAMES[date.getMonth()];
-  const dateNum = date.getDate();
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  const displayHour = hours % 12 === 0 ? 12 : hours % 12;
-  const displayMinutes = `:${String(minutes).padStart(2, '0')}`;
-  return `${day}, ${month} ${dateNum} at ${displayHour}${displayMinutes} ${ampm}`;
 }
 
 export function EventCard({ event, totalSlots, filledSlots, onPress }: EventCardProps) {

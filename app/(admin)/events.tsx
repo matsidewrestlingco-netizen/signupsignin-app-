@@ -17,28 +17,8 @@ import { useEvents } from '../../hooks/useEvents';
 import { useSlots } from '../../hooks/useSlots';
 import { EventCard } from '../../components/EventCard';
 import { StatusBadge } from '../../components/StatusBadge';
-import type { Event } from '../../lib/types';
-
-// ─── Date formatting helpers ────────────────────────────────────────────────
-
-const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const MONTH_NAMES = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-];
-
-function formatDateTime(date: Date): string {
-  const day = DAY_NAMES[date.getDay()];
-  const month = MONTH_NAMES[date.getMonth()];
-  const dateNum = date.getDate();
-  const year = date.getFullYear();
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  const displayHour = hours % 12 === 0 ? 12 : hours % 12;
-  const displayMinutes = `:${String(minutes).padStart(2, '0')}`;
-  return `${day}, ${month} ${dateNum} ${year} at ${displayHour}${displayMinutes} ${ampm}`;
-}
+import type { Event, EventInput, Slot, SlotInput } from '../../lib/types';
+import { formatEventDate } from '../../lib/dateUtils';
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 
@@ -138,14 +118,7 @@ export default function AdminEvents() {
 
 interface CreateEventViewProps {
   onBack: () => void;
-  createEvent: (data: {
-    title: string;
-    startTime: Date;
-    endTime?: Date;
-    location: string;
-    description: string;
-    isPublic: boolean;
-  }) => Promise<string>;
+  createEvent: (data: EventInput) => Promise<string>;
 }
 
 function CreateEventView({ onBack, createEvent }: CreateEventViewProps) {
@@ -310,11 +283,11 @@ function CreateEventView({ onBack, createEvent }: CreateEventViewProps) {
 
 interface DetailViewProps {
   event: Event;
-  slots: import('../../lib/types').Slot[];
+  slots: Slot[];
   slotsLoading: boolean;
   onBack: () => void;
   onDelete: () => Promise<void>;
-  createSlot: (data: import('../../lib/types').SlotInput) => Promise<string>;
+  createSlot: (data: SlotInput) => Promise<string>;
   deleteSlot: (slotId: string) => Promise<void>;
 }
 
@@ -421,8 +394,8 @@ function DetailView({
         <View style={s.infoCard}>
           {/* Date/time row */}
           <Text style={s.infoDateText}>
-            {formatDateTime(event.startTime)}
-            {event.endTime ? ` – ${formatDateTime(event.endTime)}` : ''}
+            {formatEventDate(event.startTime, true)}
+            {event.endTime ? ` – ${formatEventDate(event.endTime, true)}` : ''}
           </Text>
 
           {/* Location */}
@@ -525,7 +498,7 @@ function DetailView({
 
         {/* Slots list */}
         {slotsLoading ? (
-          <ActivityIndicator style={{ marginVertical: 16 }} color="#1a56db" />
+          <ActivityIndicator style={s.slotsLoader} color="#1a56db" />
         ) : slots.length === 0 ? (
           <Text style={s.emptySlotsText}>
             No slots yet. Add a slot to allow volunteers to sign up.
@@ -853,6 +826,9 @@ const s = StyleSheet.create({
   },
 
   // Slot row
+  slotsLoader: {
+    marginVertical: 16,
+  },
   emptySlotsText: {
     fontSize: 14,
     color: '#6b7280',
