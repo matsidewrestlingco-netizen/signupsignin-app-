@@ -1,3 +1,4 @@
+# Expo
 node_modules/
 .expo/
 dist/
@@ -9,5 +10,26 @@ npm-debug.*
 *.mobileprovision
 *.orig.*
 web-build/
+expo-env.d.ts
+
+# Generated native folders (from expo prebuild)
+/ios
+/android
+
+# Environment variables
 .env
 .env.local
+.env*.local
+
+# macOS
+.DS_Store
+
+# Build artifacts
+*.tsbuildinfo
+yarn-debug.*
+yarn-error.*
+.metro-health-check*
+.kotlin/
+
+# EAS
+*.pem
