@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOrg } from '../../contexts/OrgContext';
 import { useEvents } from '../../hooks/useEvents';
 import { useSlots } from '../../hooks/useSlots';
+import { useEventSlotCounts } from '../../hooks/useEventSlotCounts';
 import { EventCard } from '../../components/EventCard';
 import { StatusBadge } from '../../components/StatusBadge';
 import type { Event, EventInput, Slot, SlotInput } from '../../lib/types';
@@ -35,6 +36,7 @@ export default function AdminEvents() {
     currentOrg?.id,
     selectedEvent?.id
   );
+  const slotCounts = useEventSlotCounts(currentOrg?.id, events.map((e) => e.id));
 
   // ── List view ──────────────────────────────────────────────────────────────
 
@@ -69,8 +71,8 @@ export default function AdminEvents() {
             renderItem={({ item }) => (
               <EventCard
                 event={item}
-                totalSlots={0}
-                filledSlots={0}
+                totalSlots={slotCounts[item.id]?.total ?? 0}
+                filledSlots={slotCounts[item.id]?.filled ?? 0}
                 onPress={() => {
                   setSelectedEvent(item);
                   setView('detail');

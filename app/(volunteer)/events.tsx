@@ -13,6 +13,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useOrg } from '../../contexts/OrgContext';
 import { useEvents } from '../../hooks/useEvents';
 import { useSlots } from '../../hooks/useSlots';
+import { useEventSlotCounts } from '../../hooks/useEventSlotCounts';
 import { useSignups, useMySignups } from '../../hooks/useSignups';
 import { EventCard } from '../../components/EventCard';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -31,6 +32,7 @@ export default function VolunteerEvents() {
   const { slots, loading: slotsLoading } = useSlots(currentOrg?.id, selectedEvent?.id);
   const { createSignup } = useSignups(currentOrg?.id, selectedEvent?.id);
   const { signups: mySignups } = useMySignups(currentOrg?.id, currentUser?.uid);
+  const slotCounts = useEventSlotCounts(currentOrg?.id, events.map((e) => e.id));
 
   const publicEvents = events
     .filter((e) => e.isPublic)
@@ -182,8 +184,8 @@ export default function VolunteerEvents() {
             renderItem={({ item }) => (
               <EventCard
                 event={item}
-                totalSlots={0}
-                filledSlots={0}
+                totalSlots={slotCounts[item.id]?.total ?? 0}
+                filledSlots={slotCounts[item.id]?.filled ?? 0}
                 onPress={() => {
                   setSelectedEvent(item);
                   setView('detail');
