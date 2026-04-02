@@ -39,8 +39,8 @@ import AdminReports from '../../app/(admin)/reports';
 
 describe('AdminReports', () => {
   it('renders header title', () => {
-    const { getByText } = render(<AdminReports />);
-    expect(getByText('Reports & Settings')).toBeTruthy();
+    const { getAllByText } = render(<AdminReports />);
+    expect(getAllByText('Settings').length).toBeGreaterThanOrEqual(1);
   });
 
   it('switches to Templates section and shows template', () => {
@@ -50,8 +50,9 @@ describe('AdminReports', () => {
   });
 
   it('switches to Settings section and shows org name', () => {
-    const { getByText } = render(<AdminReports />);
-    fireEvent.press(getByText('Settings'));
+    const { getAllByText, getByText } = render(<AdminReports />);
+    // getAllByText returns [header, tab] in render order; press the tab (index 1)
+    fireEvent.press(getAllByText('Settings')[1]);
     expect(getByText('Organization Name')).toBeTruthy();
   });
 

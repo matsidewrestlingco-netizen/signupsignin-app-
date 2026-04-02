@@ -169,7 +169,7 @@ export default function AdminReports() {
     <SafeAreaView style={s.root} edges={['top']}>
       {/* Blue header */}
       <View style={s.header}>
-        <Text style={s.headerTitle}>Reports & Settings</Text>
+        <Text style={s.headerTitle}>Settings</Text>
       </View>
 
       {/* Section tabs */}
