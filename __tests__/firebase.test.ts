@@ -1,3 +1,7 @@
+/**
+ * @jest-environment node
+ */
+
 jest.mock('firebase/app', () => ({
   initializeApp: jest.fn(() => ({ name: 'test-app' })),
   getApps: jest.fn(() => []),
@@ -16,10 +20,6 @@ jest.mock('firebase/firestore', () => ({
 jest.mock('firebase/functions', () => ({
   getFunctions: jest.fn(() => ({})),
 }));
-
-jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
-);
 
 // Set environment variables
 process.env.EXPO_PUBLIC_FIREBASE_API_KEY = 'test-api-key';

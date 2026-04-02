@@ -14,7 +14,11 @@
     "setupFilesAfterEnv": [
       "@testing-library/jest-native/extend-expect"
     ],
+    "moduleNameMapper": {
+      "^@react-native-async-storage/async-storage$": "@react-native-async-storage/async-storage/jest/async-storage-mock"
+    },
     "testPathIgnorePatterns": [
+      "/node_modules/",
       "__tests__/firebase.test.ts"
     ]
   },
