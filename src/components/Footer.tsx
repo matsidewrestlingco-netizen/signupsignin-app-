@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import pghSkyline from '../assets/pgh_skyline.png';
 
 const pittsburghTaglines = [
@@ -25,7 +26,12 @@ export default function Footer() {
     <footer className="border-t border-gray-200 bg-white py-8">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <p className="text-center text-sm text-gray-500">
-          &copy; {new Date().getFullYear()} SignUpSignIn. Simple event registration and check-in.
+          &copy; {new Date().getFullYear()} SignUpSignIn. Simple event registration and check-in.{' '}
+          <span className="text-gray-400">v{__APP_VERSION__}</span>
+          {' · '}
+          <Link to="/privacy" className="text-gray-400 hover:text-gray-600">
+            Privacy Policy
+          </Link>
         </p>
         <div className="mt-3 flex items-center justify-center gap-2">
           <img src={pghSkyline} alt="Pittsburgh" className="h-4 w-auto opacity-40" />
