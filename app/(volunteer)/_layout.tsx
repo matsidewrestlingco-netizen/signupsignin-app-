@@ -46,6 +46,13 @@ export default function VolunteerTabLayout() {
           tabBarIcon: ({ color }) => <TabIcon name="qr-code-outline" color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="account"
+        options={{
+          title: 'Account',
+          tabBarIcon: ({ color }) => <TabIcon name="person" color={color} />,
+        }}
+      />
     </Tabs>
   );
 }
