@@ -14,6 +14,7 @@ import { SignUp } from './pages/SignUp';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { Events } from './pages/Events';
 import { EventDetail } from './pages/EventDetail';
+import { PrivacyPolicy } from './pages/PrivacyPolicy';
 
 // Setup pages
 import { CreateOrganization } from './pages/setup/CreateOrganization';
@@ -123,6 +124,7 @@ function App() {
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/events/:orgId" element={<Events />} />
               <Route path="/event/:orgId/:eventId" element={<EventDetail />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
             </Route>
 
             {/* Setup routes */}
