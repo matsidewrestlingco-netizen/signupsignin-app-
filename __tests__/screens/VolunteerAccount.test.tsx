@@ -15,10 +15,14 @@ jest.mock('../../contexts/AuthContext', () => ({
     logOut: mockLogOut,
   }),
 }));
+
+let mockCurrentOrg: { id: string; name: string; type: string } | null = {
+  id: 'org1',
+  name: 'Test Wrestling Club',
+  type: 'Wrestling',
+};
 jest.mock('../../contexts/OrgContext', () => ({
-  useOrg: () => ({
-    currentOrg: { id: 'org1', name: 'Test Wrestling Club', type: 'Wrestling' },
-  }),
+  useOrg: () => ({ currentOrg: mockCurrentOrg }),
 }));
 
 import VolunteerAccount from '../../app/(volunteer)/account';
@@ -26,6 +30,7 @@ import VolunteerAccount from '../../app/(volunteer)/account';
 describe('VolunteerAccount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCurrentOrg = { id: 'org1', name: 'Test Wrestling Club', type: 'Wrestling' };
   });
 
   it('renders Account header', () => {
@@ -79,20 +84,9 @@ describe('VolunteerAccount', () => {
     expect(mockLogOut).toHaveBeenCalledTimes(1);
   });
 
-  it.skip('shows dashes when no org is linked', () => {
-    jest.resetModules();
-    jest.doMock('../../contexts/OrgContext', () => ({
-      useOrg: () => ({ currentOrg: null }),
-    }));
-    jest.doMock('../../contexts/AuthContext', () => ({
-      useAuth: () => ({
-        userProfile: { name: 'Bob', email: 'bob@test.com' },
-        logOut: jest.fn(),
-      }),
-    }));
-    // Re-import after re-mocking
-    const { default: Screen } = require('../../app/(volunteer)/account');
-    const { getAllByText } = render(<Screen />);
+  it('shows dashes when no org is linked', () => {
+    mockCurrentOrg = null;
+    const { getAllByText } = render(<VolunteerAccount />);
     expect(getAllByText('—').length).toBeGreaterThanOrEqual(2);
   });
 });

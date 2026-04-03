@@ -13,49 +13,57 @@ export default function VolunteerAccount() {
       'Are you sure you want to sign out?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign Out', style: 'destructive', onPress: () => logOut() },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: () => {
+            logOut().catch(() => {
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
+            });
+          },
+        },
       ]
     );
   }
 
   return (
-    <SafeAreaView style={s.root} edges={['top']}>
-      <View style={s.header}>
-        <Text style={s.headerTitle}>Account</Text>
+    <SafeAreaView style={styles.root} edges={['top']}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Account</Text>
       </View>
 
-      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         {/* Profile card */}
-        <View style={s.card}>
-          <Text style={s.cardTitle}>Profile</Text>
-          <View style={s.row}>
-            <Text style={s.rowLabel}>Name</Text>
-            <Text style={s.rowValue}>{userProfile?.name ?? '—'}</Text>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Profile</Text>
+          <View style={styles.row}>
+            <Text style={styles.rowLabel}>Name</Text>
+            <Text style={styles.rowValue}>{userProfile?.name ?? '—'}</Text>
           </View>
-          <View style={s.row}>
-            <Text style={s.rowLabel}>Email</Text>
-            <Text style={s.rowValue}>{userProfile?.email ?? '—'}</Text>
+          <View style={styles.row}>
+            <Text style={styles.rowLabel}>Email</Text>
+            <Text style={styles.rowValue}>{userProfile?.email ?? '—'}</Text>
           </View>
         </View>
 
         {/* Organization card */}
-        <View style={s.card}>
-          <Text style={s.cardTitle}>Organization</Text>
-          <View style={s.row}>
-            <Text style={s.rowLabel}>Name</Text>
-            <Text style={s.rowValue}>{currentOrg?.name ?? '—'}</Text>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Organization</Text>
+          <View style={styles.row}>
+            <Text style={styles.rowLabel}>Name</Text>
+            <Text style={styles.rowValue}>{currentOrg?.name ?? '—'}</Text>
           </View>
-          <View style={s.row}>
-            <Text style={s.rowLabel}>Type</Text>
-            <Text style={s.rowValue}>{currentOrg?.type ?? '—'}</Text>
+          <View style={styles.row}>
+            <Text style={styles.rowLabel}>Type</Text>
+            <Text style={styles.rowValue}>{currentOrg?.type ?? '—'}</Text>
           </View>
         </View>
 
         {/* Account actions card */}
-        <View style={s.card}>
-          <Text style={s.cardTitle}>Actions</Text>
-          <TouchableOpacity style={s.signOutBtn} onPress={handleSignOut} activeOpacity={0.8}>
-            <Text style={s.signOutBtnText}>Sign Out</Text>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Actions</Text>
+          <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut} activeOpacity={0.8}>
+            <Text style={styles.signOutBtnText}>Sign Out</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -63,7 +71,7 @@ export default function VolunteerAccount() {
   );
 }
 
-const s = StyleSheet.create({
+const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#f9fafb',
