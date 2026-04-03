@@ -13,7 +13,7 @@ describe('PrivacyPolicy', () => {
     expect(screen.getByText(/effective date: april 3, 2026/i)).toBeInTheDocument();
   });
 
-  it('renders all ten section headings', () => {
+  it('renders all eleven section headings', () => {
     render(<PrivacyPolicy />);
     expect(screen.getByRole('heading', { level: 2, name: /introduction/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: /information we collect/i })).toBeInTheDocument();
