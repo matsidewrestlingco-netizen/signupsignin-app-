@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getDocs, collection } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useOrg } from '../../contexts/OrgContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useEvents } from '../../hooks/useEvents';
 import { useTemplates } from '../../hooks/useTemplates';
 import { formatEventDate } from '../../lib/dateUtils';
@@ -24,6 +25,26 @@ export default function AdminReports() {
   const [section, setSection] = useState<'reports' | 'templates' | 'settings'>('reports');
 
   const { currentOrg, updateOrganization } = useOrg();
+  const { logOut } = useAuth();
+
+  function handleSignOut() {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: () => {
+            logOut().catch(() => {
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
+            });
+          },
+        },
+      ]
+    );
+  }
   const { events } = useEvents(currentOrg?.id);
   const { templates, loading: templatesLoading, createTemplate, deleteTemplate } = useTemplates(
     currentOrg?.id
@@ -441,6 +462,18 @@ export default function AdminReports() {
               )}
             </TouchableOpacity>
           </View>
+
+          {/* Account card */}
+          <View style={s.settingsCard}>
+            <Text style={s.cardTitle}>Account</Text>
+            <TouchableOpacity
+              style={s.signOutBtn}
+              onPress={handleSignOut}
+              activeOpacity={0.8}
+            >
+              <Text style={s.signOutBtnText}>Sign Out</Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       )}
     </SafeAreaView>
@@ -762,5 +795,19 @@ const s = StyleSheet.create({
     textAlign: 'center',
     marginTop: 12,
     lineHeight: 20,
+  },
+
+  // Sign out
+  signOutBtn: {
+    backgroundColor: '#dc2626',
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  signOutBtnText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '700',
   },
 });

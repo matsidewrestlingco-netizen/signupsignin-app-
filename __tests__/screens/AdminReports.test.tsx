@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 
 jest.mock('../../lib/firebase', () => ({ db: {}, auth: {}, functions: {} }));
 jest.mock('react-native-safe-area-context', () => ({
@@ -11,6 +12,16 @@ jest.mock('firebase/firestore', () => ({
 }));
 
 const mockUpdateOrganization = jest.fn().mockResolvedValue(undefined);
+const mockLogOut = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('../../contexts/AuthContext', () => ({
+  useAuth: () => ({
+    currentUser: { uid: 'u1' },
+    userProfile: { name: 'Admin', email: 'admin@test.com', organizations: { org1: 'admin' } },
+    logOut: mockLogOut,
+  }),
+}));
+
 jest.mock('../../contexts/OrgContext', () => ({
   useOrg: () => ({
     currentOrg: {
@@ -38,6 +49,10 @@ jest.mock('../../hooks/useTemplates', () => ({
 import AdminReports from '../../app/(admin)/reports';
 
 describe('AdminReports', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders header title', () => {
     const { getAllByText } = render(<AdminReports />);
     expect(getAllByText('Settings').length).toBeGreaterThanOrEqual(1);
@@ -61,5 +76,23 @@ describe('AdminReports', () => {
     fireEvent.press(getByText('Templates'));
     fireEvent.press(getByText('New Template'));
     expect(getByText('Template Name')).toBeTruthy();
+  });
+
+  it('shows Sign Out button in Settings section', () => {
+    const { getAllByText, getByText } = render(<AdminReports />);
+    fireEvent.press(getAllByText('Settings')[1]);
+    expect(getByText('Sign Out')).toBeTruthy();
+  });
+
+  it('calls logOut when Sign Out is confirmed', () => {
+    const alertSpy = jest.spyOn(Alert, 'alert');
+    const { getAllByText, getByText } = render(<AdminReports />);
+    fireEvent.press(getAllByText('Settings')[1]);
+    fireEvent.press(getByText('Sign Out'));
+    expect(alertSpy).toHaveBeenCalledWith('Sign Out', expect.any(String), expect.any(Array));
+    const buttons = (alertSpy.mock.calls[0] as any[])[2];
+    const confirmBtn = buttons.find((b: any) => b.style === 'destructive');
+    confirmBtn.onPress();
+    expect(mockLogOut).toHaveBeenCalledTimes(1);
   });
 });
