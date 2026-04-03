@@ -26,25 +26,6 @@ export default function AdminReports() {
 
   const { currentOrg, updateOrganization } = useOrg();
   const { logOut } = useAuth();
-
-  function handleSignOut() {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: () => {
-            logOut().catch(() => {
-              Alert.alert('Error', 'Failed to sign out. Please try again.');
-            });
-          },
-        },
-      ]
-    );
-  }
   const { events } = useEvents(currentOrg?.id);
   const { templates, loading: templatesLoading, createTemplate, deleteTemplate } = useTemplates(
     currentOrg?.id
@@ -110,6 +91,25 @@ export default function AdminReports() {
   }, [currentOrg?.id]);
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
+
+  function handleSignOut() {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: () => {
+            logOut().catch(() => {
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
+            });
+          },
+        },
+      ]
+    );
+  }
 
   function confirmDeleteTemplate(templateId: string, name: string) {
     Alert.alert(
@@ -784,20 +784,6 @@ const s = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
-
-  // Misc
-  loader: {
-    marginVertical: 16,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#6b7280',
-    textAlign: 'center',
-    marginTop: 12,
-    lineHeight: 20,
-  },
-
-  // Sign out
   signOutBtn: {
     backgroundColor: '#dc2626',
     borderRadius: 10,
@@ -809,5 +795,17 @@ const s = StyleSheet.create({
     color: '#ffffff',
     fontSize: 15,
     fontWeight: '700',
+  },
+
+  // Misc
+  loader: {
+    marginVertical: 16,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginTop: 12,
+    lineHeight: 20,
   },
 });
