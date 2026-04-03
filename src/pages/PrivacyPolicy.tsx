@@ -136,7 +136,7 @@ export function PrivacyPolicy() {
             <h2 className="text-xl font-semibold text-gray-900 mb-3">Changes to This Policy</h2>
             <p className="text-sm text-gray-600 leading-relaxed">
               We may update this Privacy Policy from time to time. When we do, we will revise the
-              date at the top of this page. We encourage you to review this policy
+              effective date at the top of this page. We encourage you to review this policy
               periodically.
             </p>
           </section>
