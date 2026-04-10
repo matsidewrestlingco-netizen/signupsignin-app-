@@ -34,10 +34,10 @@ Manual setup at appstoreconnect.apple.com before submitting a build:
 - **Subtitle**: Optional — e.g., "Wrestling Event Volunteer Tool"
 - **Description**: Explain the app's purpose — volunteer signup/signin for wrestling events, QR code check-in, admin event management
 - **Keywords**: wrestling, volunteer, signup, signin, event, check-in, sports
-- **Support URL**: To be provided by Matside Wrestling
+- **Support URL**: `https://www.signupsignin.com/support`
 - **Privacy Policy URL**: `https://www.signupsignin.com/privacy`
 - **Age rating**: 4+
-- **Pricing**: To be confirmed (free assumed)
+- **Pricing**: Free
 
 ---
 
@@ -98,7 +98,6 @@ Apple's review typically takes 1–3 business days for a first submission.
 
 - **Privacy manifest required**: Expo SDK 50+ apps must include `PrivacyInfo.xcprivacy` or Apple will reject the build.
 - **All metadata must be complete** before App Review will accept the submission.
-- **Support URL** is required by Apple — confirm this URL with the team before submitting.
 - **Google Sign-In**: The app uses `expo-auth-session/providers/google`. The app `scheme` (`signupsignin`) is already set in `app.json` and the iOS client ID is already in EAS env vars — no additional URL scheme configuration needed.
 
 ---
