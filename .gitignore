@@ -36,3 +36,6 @@ yarn-error.*
 
 # EAS
 *.pem
+
+# Git worktrees
+.worktrees/
