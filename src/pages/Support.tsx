@@ -10,6 +10,8 @@ function FaqItem({ question, answer }: FaqItemProps) {
   return (
     <div className="border-b border-gray-200">
       <button
+        type="button"
+        aria-expanded={open}
         onClick={() => setOpen(!open)}
         className="flex w-full items-center justify-between py-4 text-left text-sm font-medium text-gray-900 hover:text-gray-700"
       >
