@@ -30,8 +30,8 @@ describe('PrivacyPolicy', () => {
 
   it('renders the contact email address', () => {
     render(<PrivacyPolicy />);
-    const links = screen.getAllByRole('link', { name: /daniel@matside\.org/i });
+    const links = screen.getAllByRole('link', { name: /support@matside\.org/i });
     expect(links.length).toBeGreaterThan(0);
-    expect(links[0]).toHaveAttribute('href', 'mailto:daniel@matside.org');
+    expect(links[0]).toHaveAttribute('href', 'mailto:support@matside.org');
   });
 });

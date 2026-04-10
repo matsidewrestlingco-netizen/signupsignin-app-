@@ -95,8 +95,8 @@ export function PrivacyPolicy() {
             <p className="text-sm text-gray-600 leading-relaxed mb-2">
               You have the right to access, correct, or request deletion of your personal
               information. To exercise these rights, email us at{' '}
-              <a href="mailto:daniel@matside.org" className="text-primary-600 hover:underline">
-                daniel@matside.org
+              <a href="mailto:support@matside.org" className="text-primary-600 hover:underline">
+                support@matside.org
               </a>
               .
             </p>
@@ -115,8 +115,8 @@ export function PrivacyPolicy() {
               intended to be used by adults (such as parents or coaches) who may register on
               behalf of minors. If you believe we have inadvertently collected information from a
               child under 13, please contact us at{' '}
-              <a href="mailto:daniel@matside.org" className="text-primary-600 hover:underline">
-                daniel@matside.org
+              <a href="mailto:support@matside.org" className="text-primary-600 hover:underline">
+                support@matside.org
               </a>{' '}
               and we will promptly delete it.
             </p>
@@ -146,8 +146,8 @@ export function PrivacyPolicy() {
             <p className="text-sm text-gray-600 leading-relaxed">
               If you have questions or concerns about this Privacy Policy or your data, please
               contact us at{' '}
-              <a href="mailto:daniel@matside.org" className="text-primary-600 hover:underline">
-                daniel@matside.org
+              <a href="mailto:support@matside.org" className="text-primary-600 hover:underline">
+                support@matside.org
               </a>
               .
             </p>
