@@ -32,6 +32,10 @@ export default function Footer() {
           <Link to="/privacy" className="text-gray-400 hover:text-gray-600">
             Privacy Policy
           </Link>
+          {' · '}
+          <Link to="/support" className="text-gray-400 hover:text-gray-600">
+            Support
+          </Link>
         </p>
         <div className="mt-3 flex items-center justify-center gap-2">
           <img src={pghSkyline} alt="Pittsburgh" className="h-4 w-auto opacity-40" />

@@ -19,4 +19,11 @@ describe('Footer', () => {
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute('href', '/privacy');
   });
+
+  it('renders a Support link pointing to /support', () => {
+    render(<Footer />);
+    const link = screen.getByRole('link', { name: /support/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', '/support');
+  });
 });
