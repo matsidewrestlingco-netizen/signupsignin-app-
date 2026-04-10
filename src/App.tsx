@@ -15,6 +15,7 @@ import { ForgotPassword } from './pages/ForgotPassword';
 import { Events } from './pages/Events';
 import { EventDetail } from './pages/EventDetail';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
+import { Support } from './pages/Support';
 
 // Setup pages
 import { CreateOrganization } from './pages/setup/CreateOrganization';
@@ -125,6 +126,7 @@ function App() {
               <Route path="/events/:orgId" element={<Events />} />
               <Route path="/event/:orgId/:eventId" element={<EventDetail />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/support" element={<Support />} />
             </Route>
 
             {/* Setup routes */}
