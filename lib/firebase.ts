@@ -16,12 +16,16 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
 // Use initializeAuth with AsyncStorage persistence on first init;
-// fall back to getAuth on subsequent calls (e.g., during hot reload)
-export const auth = getApps().length > 1
-  ? getAuth(app)
-  : initializeAuth(app, {
+// fall back to getAuth if already initialized (e.g., during hot reload in dev)
+export const auth = (() => {
+  try {
+    return initializeAuth(app, {
       persistence: getReactNativePersistence(AsyncStorage),
     });
+  } catch {
+    return getAuth(app);
+  }
+})();
 
 export const db = getFirestore(app);
 export const functions = getFunctions(app);
