@@ -21,6 +21,20 @@
         "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "750386643701-1om497n5vnfsnkd428jm4mqvkii01hjs.apps.googleusercontent.com"
       }
     },
+    "device": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyAO4mueQIhfZv1K89czZ0WwnRAZ07fZogQ",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "matsidesystems---signupsignin.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "matsidesystems---signupsignin",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "matsidesystems---signupsignin.firebasestorage.app",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "750386643701",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:750386643701:web:b31b4194d53f48eae7fbbc",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "593769125936-t45agoqd476b1urh0mgsmahtevl514gf.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "750386643701-1om497n5vnfsnkd428jm4mqvkii01hjs.apps.googleusercontent.com"
+      }
+    },
     "preview": {
       "distribution": "internal",
       "env": {
