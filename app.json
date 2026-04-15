@@ -20,7 +20,14 @@
       "infoPlist": {
         "CFBundleDisplayName": "SignupSignin",
         "NSCameraUsageDescription": "Allow SignupSignin to access your camera to scan volunteer QR codes.",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.750386643701-1om497n5vnfsnkd428jm4mqvkii01hjs"
+            ]
+          }
+        ]
       },
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [

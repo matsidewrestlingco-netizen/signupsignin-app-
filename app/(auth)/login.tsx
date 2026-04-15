@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import {
   View,
   Text,
+  Image,
   TextInput,
   TouchableOpacity,
   StyleSheet,
@@ -72,7 +73,7 @@ export function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>SignupSignin</Text>
+        <Image source={require('../../assets/icon.png')} style={styles.logo} />
         <Text style={styles.subtitle}>Volunteer Event Management</Text>
 
         <View style={styles.form}>
@@ -124,14 +125,14 @@ export function LoginScreen() {
             <Text style={styles.googleButtonText}>Continue with Google</Text>
           </TouchableOpacity>
 
-          <Link href="/(auth)/forgot-password" style={styles.link}>
-            Forgot password?
-          </Link>
-
           <View style={styles.row}>
             <Text style={styles.mutedText}>Don't have an account? </Text>
             <Link href="/(auth)/signup" style={styles.link}>Sign up</Link>
           </View>
+
+          <Link href="/(auth)/forgot-password" style={styles.forgotLink}>
+            Forgot password?
+          </Link>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -143,7 +144,7 @@ export default LoginScreen;
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: '#1a56db' },
   container: { flexGrow: 1, justifyContent: 'center', padding: 24 },
-  title: { fontSize: 32, fontWeight: '800', color: '#fff', textAlign: 'center' },
+  logo: { width: 120, height: 120, alignSelf: 'center', marginBottom: 8, borderRadius: 24 },
   subtitle: { fontSize: 16, color: '#bfdbfe', textAlign: 'center', marginTop: 4, marginBottom: 32 },
   form: { backgroundColor: '#fff', borderRadius: 16, padding: 24 },
   label: { fontSize: 14, fontWeight: '500', color: '#374151', marginBottom: 4 },
@@ -175,6 +176,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   link: { color: '#1a56db', fontSize: 14, fontWeight: '500' },
+  forgotLink: { color: '#6b7280', fontSize: 13, textAlign: 'center', marginTop: 12 },
   row: { flexDirection: 'row', justifyContent: 'center', marginTop: 16 },
   mutedText: { color: '#6b7280', fontSize: 14 },
   divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 16 },
