@@ -30,13 +30,12 @@ export function LoginScreen() {
 
   const [_request, googleResponse, promptGoogleAsync] = Google.useAuthRequest({
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    scopes: ['profile', 'email'],
+    scopes: ['openid', 'profile', 'email'],
   });
 
   useEffect(() => {
     if (googleResponse?.type === 'success') {
-      const idToken = googleResponse.params?.id_token ?? googleResponse.authentication?.idToken ?? null;
+      const idToken = googleResponse.authentication?.idToken ?? googleResponse.params?.id_token ?? null;
       const accessToken = googleResponse.authentication?.accessToken ?? null;
       setSubmitting(true);
       signInWithGoogle(idToken, accessToken)

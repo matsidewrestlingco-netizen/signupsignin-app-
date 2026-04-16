@@ -1,5 +1,7 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
 import { useOrg } from '../../contexts/OrgContext';
@@ -11,7 +13,8 @@ import { useEventSlotCounts } from '../../hooks/useEventSlotCounts';
 export default function AdminDashboard() {
   const router = useRouter();
   const { userProfile } = useAuth();
-  const { currentOrg, loading: orgLoading } = useOrg();
+  const { currentOrg, organizations, loading: orgLoading, setCurrentOrg } = useOrg();
+  const [showOrgPicker, setShowOrgPicker] = useState(false);
   const { events, loading: eventsLoading } = useEvents(currentOrg?.id);
   const slotCounts = useEventSlotCounts(currentOrg?.id, events.map((e) => e.id));
 
@@ -40,9 +43,36 @@ export default function AdminDashboard() {
     <SafeAreaView style={styles.root}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{orgName}</Text>
+        {organizations.length > 1 ? (
+          <TouchableOpacity style={styles.orgPickerRow} onPress={() => setShowOrgPicker(true)} activeOpacity={0.75}>
+            <Text style={styles.headerTitle}>{orgName}</Text>
+            <Ionicons name="chevron-down" size={16} color="#fff" style={{ marginLeft: 4, marginTop: 2 }} />
+          </TouchableOpacity>
+        ) : (
+          <Text style={styles.headerTitle}>{orgName}</Text>
+        )}
         <Text style={styles.headerSubtitle}>{welcomeName}</Text>
       </View>
+
+      <Modal visible={showOrgPicker} transparent animationType="fade" onRequestClose={() => setShowOrgPicker(false)}>
+        <Pressable style={styles.modalOverlay} onPress={() => setShowOrgPicker(false)}>
+          <View style={styles.modalSheet}>
+            <Text style={styles.modalTitle}>Switch Organization</Text>
+            {organizations.map((org) => (
+              <TouchableOpacity
+                key={org.id}
+                style={[styles.orgOption, currentOrg?.id === org.id && styles.orgOptionActive]}
+                onPress={() => { setCurrentOrg(org); setShowOrgPicker(false); }}
+              >
+                <Text style={[styles.orgOptionText, currentOrg?.id === org.id && styles.orgOptionTextActive]}>
+                  {org.name}
+                </Text>
+                {currentOrg?.id === org.id && <Ionicons name="checkmark" size={18} color="#1a56db" />}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Stats Row */}
@@ -111,16 +141,61 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 20,
   },
+  orgPickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   headerTitle: {
     fontSize: 22,
     fontWeight: '700',
     color: '#ffffff',
-    marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 14,
     color: '#ffffff',
     opacity: 0.88,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  modalSheet: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 0,
+  },
+  modalTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#9ca3af',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  orgOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+  },
+  orgOptionActive: {
+    backgroundColor: '#eff6ff',
+  },
+  orgOptionText: {
+    fontSize: 16,
+    color: '#111827',
+  },
+  orgOptionTextActive: {
+    color: '#1a56db',
+    fontWeight: '600',
   },
   scrollContent: {
     padding: 16,
