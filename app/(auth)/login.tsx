@@ -1,5 +1,6 @@
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { useState, useEffect } from 'react';
 import {
   View,
@@ -25,13 +26,18 @@ export function LoginScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(false);
 
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, signInWithApple } = useAuth();
 
   const [_request, googleResponse, promptGoogleAsync] = Google.useAuthRequest({
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     scopes: ['openid', 'profile', 'email'],
   });
+
+  useEffect(() => {
+    AppleAuthentication.isAvailableAsync().then(setAppleAvailable);
+  }, []);
 
   useEffect(() => {
     if (googleResponse?.type === 'success') {
@@ -60,6 +66,21 @@ export function LoginScreen() {
         setError('Too many attempts. Please try again later.');
       } else {
         setError('Login failed. Please try again.');
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleAppleSignIn() {
+    setError('');
+    setSubmitting(true);
+    try {
+      await signInWithApple();
+    } catch (e: unknown) {
+      const code = (e as { code?: string }).code ?? '';
+      if (code !== 'ERR_REQUEST_CANCELED') {
+        setError('Apple sign-in failed. Please try again.');
       }
     } finally {
       setSubmitting(false);
@@ -123,6 +144,17 @@ export function LoginScreen() {
           >
             <Text style={styles.googleButtonText}>Continue with Google</Text>
           </TouchableOpacity>
+
+          {appleAvailable && (
+            <AppleAuthentication.AppleAuthenticationButton
+              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+              cornerRadius={8}
+              style={styles.appleButton}
+              onPress={handleAppleSignIn}
+              testID="apple-sign-in-btn"
+            />
+          )}
 
           <View style={styles.row}>
             <Text style={styles.mutedText}>Don't have an account? </Text>
@@ -190,4 +222,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   googleButtonText: { color: '#374151', fontSize: 16, fontWeight: '500' },
+  appleButton: {
+    width: '100%',
+    height: 44,
+    marginTop: 12,
+  },
 });
