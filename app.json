@@ -17,11 +17,17 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.matsidewrestling.signupsignin",
       "buildNumber": "1",
+      "usesAppleSignIn": true,
       "infoPlist": {
         "CFBundleDisplayName": "SignupSignin",
         "NSCameraUsageDescription": "Allow SignupSignin to access your camera to scan volunteer QR codes.",
         "ITSAppUsesNonExemptEncryption": false,
         "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.750386643701-90ujavl5bg1enpo9mn3hqp8tbue0tmt8"
+            ]
+          },
           {
             "CFBundleURLSchemes": [
               "com.googleusercontent.apps.750386643701-90ujavl5bg1enpo9mn3hqp8tbue0tmt8"
@@ -33,19 +39,51 @@
         "NSPrivacyAccessedAPITypes": [
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
-            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "CA92.1"
+            ]
           },
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
-            "NSPrivacyAccessedAPITypeReasons": ["C617.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "C617.1"
+            ]
           },
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
-            "NSPrivacyAccessedAPITypeReasons": ["35F9.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "35F9.1"
+            ]
           },
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",
-            "NSPrivacyAccessedAPITypeReasons": ["E174.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "E174.1"
+            ]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "CA92.1"
+            ]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "C617.1"
+            ]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "35F9.1"
+            ]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "E174.1"
+            ]
           }
         ]
       }
@@ -62,6 +100,10 @@
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_CALENDAR",
         "android.permission.WRITE_CALENDAR"
       ]
     },
@@ -70,6 +112,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-apple-authentication",
       [
         "expo-camera",
         {
@@ -99,6 +142,12 @@
       },
       "router": {}
     },
-    "owner": "danielmswc"
+    "owner": "danielmswc",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/9e9a5015-26af-4925-bd39-ba7471c43e6e"
+    }
   }
 }
