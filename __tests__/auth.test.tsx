@@ -1,3 +1,18 @@
+jest.mock('expo-apple-authentication', () => ({
+  signInAsync: jest.fn(),
+  AppleAuthenticationScope: { FULL_NAME: 'FULL_NAME', EMAIL: 'EMAIL' },
+  isAvailableAsync: jest.fn().mockResolvedValue(false),
+  AppleAuthenticationButton: 'AppleAuthenticationButton',
+  AppleAuthenticationButtonType: { SIGN_IN: 'SIGN_IN' },
+  AppleAuthenticationButtonStyle: { BLACK: 'BLACK' },
+}));
+
+jest.mock('expo-crypto', () => ({
+  getRandomBytesAsync: jest.fn().mockResolvedValue(new Uint8Array(32)),
+  digestStringAsync: jest.fn().mockResolvedValue('hashed'),
+  CryptoDigestAlgorithm: { SHA256: 'SHA-256' },
+}));
+
 jest.mock('../lib/firebase', () => ({
   auth: {},
   db: {},
@@ -10,13 +25,19 @@ jest.mock('firebase/auth', () => ({
   signInWithEmailAndPassword: jest.fn().mockResolvedValue({}),
   signOut: jest.fn().mockResolvedValue(undefined),
   sendPasswordResetEmail: jest.fn(),
+  OAuthProvider: jest.fn().mockImplementation(() => ({ credential: jest.fn() })),
+  GoogleAuthProvider: { credential: jest.fn() },
+  signInWithCredential: jest.fn(),
+  deleteUser: jest.fn(),
 }));
 
 jest.mock('firebase/firestore', () => ({
   doc: jest.fn(),
   getDoc: jest.fn(),
   setDoc: jest.fn(),
+  onSnapshot: jest.fn().mockReturnValue(jest.fn()),
   serverTimestamp: jest.fn(),
+  deleteDoc: jest.fn(),
 }));
 
 import React from 'react';

@@ -6,10 +6,15 @@ import {
   signOut,
   onAuthStateChanged,
   sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithCredential,
+  OAuthProvider,
+  deleteUser,
 } from 'firebase/auth';
 import type { User } from 'firebase/auth';
-import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
-import { doc, setDoc, getDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, onSnapshot, serverTimestamp, deleteDoc } from 'firebase/firestore';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import * as Crypto from 'expo-crypto';
 import { auth, db } from '../lib/firebase';
 import type { UserProfile } from '../lib/types';
 
@@ -24,6 +29,8 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
   refreshProfile: () => Promise<void>;
   signInWithGoogle: (idToken: string | null, accessToken?: string | null) => Promise<void>;
+  signInWithApple: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,6 +41,13 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
+}
+
+async function buildAppleNonce(): Promise<{ raw: string; hashed: string }> {
+  const randomBytes = await Crypto.getRandomBytesAsync(32);
+  const raw = Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+  const hashed = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, raw);
+  return { raw, hashed };
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -84,6 +98,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         superAdmin: false,
       });
     }
+  }
+
+  async function signInWithApple() {
+    const { raw, hashed } = await buildAppleNonce();
+    const appleResult = await AppleAuthentication.signInAsync({
+      requestedScopes: [
+        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+        AppleAuthentication.AppleAuthenticationScope.EMAIL,
+      ],
+      nonce: hashed,
+    });
+    if (!appleResult.identityToken) throw new Error('Apple sign-in failed: no identity token');
+    const provider = new OAuthProvider('apple.com');
+    const credential = provider.credential({ idToken: appleResult.identityToken, rawNonce: raw });
+    const { user } = await signInWithCredential(auth, credential);
+    const docRef = doc(db, 'users', user.uid);
+    const existing = await getDoc(docRef);
+    if (!existing.exists()) {
+      const { fullName, email } = appleResult;
+      const name = fullName
+        ? [fullName.givenName, fullName.familyName].filter(Boolean).join(' ')
+        : '';
+      await setDoc(docRef, {
+        email: email ?? user.email ?? '',
+        name: name || (email ?? user.email ?? ''),
+        createdAt: serverTimestamp(),
+        organizations: {},
+        superAdmin: false,
+      });
+    }
+  }
+
+  async function deleteAccount(): Promise<void> {
+    throw new Error('not yet implemented');
   }
 
   useEffect(() => {
@@ -148,6 +196,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resetPassword,
     refreshProfile,
     signInWithGoogle,
+    signInWithApple,
+    deleteAccount,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
