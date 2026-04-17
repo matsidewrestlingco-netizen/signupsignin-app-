@@ -29,7 +29,7 @@ export function useOrg() {
 }
 
 export function OrgProvider({ children }: { children: ReactNode }) {
-  const { currentUser, userProfile, refreshProfile } = useAuth();
+  const { currentUser, userProfile, loading: authLoading, refreshProfile } = useAuth();
   const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
@@ -106,6 +106,7 @@ export function OrgProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
+    if (authLoading) return; // wait for auth to resolve before touching loading state
     if (userProfile) {
       setLoading(true);
       fetchOrganizations().catch(() => setLoading(false));
@@ -114,7 +115,7 @@ export function OrgProvider({ children }: { children: ReactNode }) {
       setCurrentOrg(null);
       setLoading(false);
     }
-  }, [userProfile]);
+  }, [userProfile, authLoading]);
 
   return (
     <OrgContext.Provider

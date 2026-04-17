@@ -9,7 +9,7 @@ import {
 } from 'firebase/auth';
 import type { User } from 'firebase/auth';
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import type { UserProfile } from '../lib/types';
 
@@ -41,23 +41,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function fetchUserProfile(user: User) {
-    const docRef = doc(db, 'users', user.uid);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      setUserProfile({
-        email: data.email,
-        name: data.name,
-        createdAt: data.createdAt?.toDate() || new Date(),
-        organizations: data.organizations || {},
-        superAdmin: data.superAdmin || false,
-      });
-    } else {
-      setUserProfile(null);
-    }
-  }
-
   async function signUp(email: string, password: string, name: string) {
     const { user } = await createUserWithEmailAndPassword(auth, email, password);
     await setDoc(doc(db, 'users', user.uid), {
@@ -67,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       organizations: {},
       superAdmin: false,
     });
-    await fetchUserProfile(user);
+    // onSnapshot listener (set up in onAuthStateChanged) picks up the new doc automatically
   }
 
   async function logIn(email: string, password: string) {
@@ -84,36 +67,73 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function refreshProfile() {
-    if (currentUser) {
-      await fetchUserProfile(currentUser);
-    }
+    // No-op: onSnapshot keeps userProfile up to date in real time
   }
 
   async function signInWithGoogle(idToken: string | null, accessToken?: string | null) {
     const credential = GoogleAuthProvider.credential(idToken, accessToken);
-    await signInWithCredential(auth, credential);
+    const { user } = await signInWithCredential(auth, credential);
+    const docRef = doc(db, 'users', user.uid);
+    const existing = await getDoc(docRef);
+    if (!existing.exists()) {
+      await setDoc(docRef, {
+        email: user.email ?? '',
+        name: user.displayName ?? '',
+        createdAt: serverTimestamp(),
+        organizations: {},
+        superAdmin: false,
+      });
+    }
   }
 
   useEffect(() => {
     let active = true;
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    let profileUnsub: (() => void) | null = null;
+
+    const authUnsub = onAuthStateChanged(auth, (user) => {
       if (!active) return;
-      if (user) setLoading(true);
+
+      profileUnsub?.();
+      profileUnsub = null;
+
       setCurrentUser(user);
+
       if (user) {
-        try {
-          await fetchUserProfile(user);
-        } catch {
-          if (active) setUserProfile(null);
-        }
+        setLoading(true);
+        profileUnsub = onSnapshot(
+          doc(db, 'users', user.uid),
+          (snap) => {
+            if (!active) return;
+            if (snap.exists()) {
+              const d = snap.data();
+              setUserProfile({
+                email: d.email,
+                name: d.name,
+                createdAt: d.createdAt?.toDate() ?? new Date(),
+                organizations: d.organizations ?? {},
+                superAdmin: d.superAdmin ?? false,
+              });
+            } else {
+              setUserProfile(null);
+            }
+            setLoading(false);
+          },
+          () => {
+            if (!active) return;
+            setUserProfile(null);
+            setLoading(false);
+          }
+        );
       } else {
         setUserProfile(null);
+        setLoading(false);
       }
-      if (active) setLoading(false);
     });
+
     return () => {
       active = false;
-      unsubscribe();
+      authUnsub();
+      profileUnsub?.();
     };
   }, []);
 
