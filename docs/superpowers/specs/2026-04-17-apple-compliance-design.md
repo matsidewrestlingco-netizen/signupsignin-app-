@@ -69,9 +69,9 @@ Org membership is tracked on the user document only (`organizations` map), not o
 Add `deleteAccount: () => Promise<void>` to the context type and implementation.
 
 **Implementation steps:**
-1. Delete `doc(db, 'users', uid)` from Firestore
-2. Call `deleteUser(currentUser)` from Firebase Auth
-3. If step 2 throws `auth/requires-recent-login`: call `signOut(auth)`, then show alert: "For security, please sign in again and then delete your account from the Account page."
+1. Call `deleteUser(currentUser)` from Firebase Auth
+2. If step 1 throws `auth/requires-recent-login`: call `signOut(auth)` and re-throw — the caller (account screen) handles showing the alert. Firestore doc is left intact so data is preserved if the user signs in again.
+3. Delete `doc(db, 'users', uid)` from Firestore (only reached if Auth deletion succeeded)
 4. On success: `onAuthStateChanged` fires automatically, redirecting the user to the login screen
 
 ### Volunteer Account Screen (`app/(volunteer)/account.tsx`)
@@ -84,8 +84,9 @@ Add a "Delete Account" button in the Actions card, below the "Sign Out" button. 
 3. Second `Alert`: "This will permanently delete your account and all your data. This action cannot be reversed." → [Cancel] [Yes, Delete My Account]
 4. Show loading state (disable both buttons, show `ActivityIndicator` or disable the button)
 5. Call `deleteAccount()`
-6. On `requires-recent-login` error: show alert per above, do not crash
-7. On success: app navigates to login automatically via auth state change
+6. If `deleteAccount` throws `auth/requires-recent-login`: show alert "For security, please sign in again and then delete your account from the Account page." — user data is preserved
+7. Any other error: show "Failed to delete account. Please try again."
+8. On success: app navigates to login automatically via auth state change
 
 Two confirmation steps are explicitly allowed by Apple's guidelines for destructive actions.
 
