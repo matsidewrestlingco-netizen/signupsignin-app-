@@ -107,7 +107,8 @@ export function OrgProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (userProfile) {
-      fetchOrganizations();
+      setLoading(true);
+      fetchOrganizations().catch(() => setLoading(false));
     } else {
       setOrganizations([]);
       setCurrentOrg(null);

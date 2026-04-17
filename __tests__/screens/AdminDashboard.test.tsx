@@ -14,7 +14,9 @@ jest.mock('../../contexts/AuthContext', () => ({
 jest.mock('../../contexts/OrgContext', () => ({
   useOrg: () => ({
     currentOrg: { id: 'org1', name: 'Test Org', type: 'Wrestling', ownerId: 'u1', createdAt: new Date() },
+    organizations: [{ id: 'org1', name: 'Test Org', type: 'Wrestling', ownerId: 'u1', createdAt: new Date() }],
     loading: false,
+    setCurrentOrg: jest.fn(),
   }),
 }));
 jest.mock('../../hooks/useEvents', () => ({
