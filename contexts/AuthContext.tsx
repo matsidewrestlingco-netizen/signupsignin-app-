@@ -136,8 +136,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await deleteUser(currentUser);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : '';
-      if (msg.includes('requires-recent-login')) {
+      const code = (e as { code?: string }).code ?? '';
+      if (code === 'auth/requires-recent-login') {
         await signOut(auth);
       }
       throw e;
