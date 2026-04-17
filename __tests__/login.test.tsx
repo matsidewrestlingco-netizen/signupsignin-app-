@@ -38,7 +38,7 @@ jest.mock('expo-apple-authentication', () => ({
   }) =>
     require('react').createElement(
       require('react-native').TouchableOpacity,
-      { onPress, testID: testID ?? 'apple-sign-in-btn' },
+      { onPress, testID },
       require('react').createElement(require('react-native').Text, null, 'Sign in with Apple')
     ),
   AppleAuthenticationButtonType: { SIGN_IN: 'SIGN_IN' },

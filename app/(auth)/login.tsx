@@ -20,7 +20,7 @@ import { useAuth } from '../../contexts/AuthContext';
 WebBrowser.maybeCompleteAuthSession();
 
 export function LoginScreen() {
-  const { logIn } = useAuth();
+  const { logIn, signInWithGoogle, signInWithApple } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,15 +28,13 @@ export function LoginScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [appleAvailable, setAppleAvailable] = useState(false);
 
-  const { signInWithGoogle, signInWithApple } = useAuth();
-
   const [_request, googleResponse, promptGoogleAsync] = Google.useAuthRequest({
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     scopes: ['openid', 'profile', 'email'],
   });
 
   useEffect(() => {
-    AppleAuthentication.isAvailableAsync().then(setAppleAvailable);
+    AppleAuthentication.isAvailableAsync().then(setAppleAvailable).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -73,6 +71,7 @@ export function LoginScreen() {
   }
 
   async function handleAppleSignIn() {
+    if (submitting) return;
     setError('');
     setSubmitting(true);
     try {
