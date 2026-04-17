@@ -46,13 +46,16 @@ import { AuthProvider, useAuth } from '../contexts/AuthContext';
 describe('signInWithApple', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    const { OAuthProvider, signInWithCredential } = require('firebase/auth');
+    (OAuthProvider as jest.Mock).mockImplementation(() => ({
+      credential: jest.fn().mockReturnValue('apple-credential'),
+    }));
     const { signInAsync } = require('expo-apple-authentication');
     (signInAsync as jest.Mock).mockResolvedValue({
       identityToken: 'id-token',
       fullName: { givenName: 'Jane', familyName: 'Doe' },
       email: 'jane@appleid.com',
     });
-    const { signInWithCredential } = require('firebase/auth');
     (signInWithCredential as jest.Mock).mockResolvedValue({
       user: { uid: 'apple-uid', email: 'jane@appleid.com', displayName: null },
     });
@@ -105,5 +108,30 @@ describe('signInWithApple', () => {
     (signInAsync as jest.Mock).mockRejectedValue(cancelErr);
     const { getFn } = renderWithCapture();
     await expect(act(async () => { await getFn()(); })).rejects.toThrow('canceled');
+  });
+
+  it('passes the raw (unhashed) nonce to OAuthProvider.credential', async () => {
+    const { OAuthProvider } = require('firebase/auth');
+    const { getDoc } = require('firebase/firestore');
+    (getDoc as jest.Mock).mockResolvedValue({ exists: () => false });
+    const { getFn } = renderWithCapture();
+    await act(async () => { await getFn()(); });
+    const providerInstance = (OAuthProvider as jest.Mock).mock.results[0].value;
+    expect(providerInstance.credential).toHaveBeenCalledWith(
+      expect.objectContaining({ rawNonce: expect.stringMatching(/^[0-9a-f]{64}$/) })
+    );
+  });
+
+  it('throws when Apple returns no identity token', async () => {
+    const { signInAsync } = require('expo-apple-authentication');
+    (signInAsync as jest.Mock).mockResolvedValue({
+      identityToken: null,
+      fullName: null,
+      email: null,
+    });
+    const { getFn } = renderWithCapture();
+    await expect(
+      act(async () => { await getFn()(); })
+    ).rejects.toThrow('Apple sign-in failed: no identity token');
   });
 });
