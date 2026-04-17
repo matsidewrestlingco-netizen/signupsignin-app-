@@ -8,11 +8,14 @@ jest.mock('react-native-safe-area-context', () => ({
 }));
 
 const mockLogOut = jest.fn().mockResolvedValue(undefined);
+const mockDeleteAccount = jest.fn();
+
 jest.mock('../../contexts/AuthContext', () => ({
   useAuth: () => ({
     currentUser: { uid: 'user1' },
     userProfile: { name: 'Alice Smith', email: 'alice@test.com', organizations: {} },
     logOut: mockLogOut,
+    deleteAccount: mockDeleteAccount,
   }),
 }));
 
@@ -88,5 +91,35 @@ describe('VolunteerAccount', () => {
     mockCurrentOrg = null;
     const { getAllByText } = render(<VolunteerAccount />);
     expect(getAllByText('—').length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('renders a Delete Account button', () => {
+    const { getByText } = render(<VolunteerAccount />);
+    expect(getByText('Delete Account')).toBeTruthy();
+  });
+
+  it('shows the first confirmation alert when Delete Account is pressed', () => {
+    const alertSpy = jest.spyOn(Alert, 'alert');
+    const { getByText } = render(<VolunteerAccount />);
+    fireEvent.press(getByText('Delete Account'));
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Delete Account',
+      'Are you sure? This cannot be undone.',
+      expect.any(Array)
+    );
+  });
+
+  it('shows the second confirmation alert when first Delete is confirmed', () => {
+    const alertSpy = jest.spyOn(Alert, 'alert');
+    const { getByText } = render(<VolunteerAccount />);
+    fireEvent.press(getByText('Delete Account'));
+    const firstAlertButtons = (alertSpy.mock.calls[0] as unknown[])[2] as Array<{ text: string; style?: string; onPress?: () => void }>;
+    const deleteBtn = firstAlertButtons.find(b => b.style === 'destructive');
+    deleteBtn!.onPress!();
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Delete Account',
+      'This will permanently delete your account and all your data. This action cannot be reversed.',
+      expect.any(Array)
+    );
   });
 });

@@ -1,11 +1,13 @@
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
+import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
 import { useOrg } from '../../contexts/OrgContext';
 
 export default function VolunteerAccount() {
-  const { userProfile, logOut } = useAuth();
+  const { userProfile, logOut, deleteAccount } = useAuth();
   const { currentOrg } = useOrg();
+  const [deleting, setDeleting] = useState(false);
 
   function handleSignOut() {
     Alert.alert(
@@ -24,6 +26,48 @@ export default function VolunteerAccount() {
         },
       ]
     );
+  }
+
+  function handleDeleteAccount() {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure? This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: confirmDelete },
+      ]
+    );
+  }
+
+  function confirmDelete() {
+    Alert.alert(
+      'Delete Account',
+      'This will permanently delete your account and all your data. This action cannot be reversed.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Yes, Delete My Account', style: 'destructive', onPress: performDelete },
+      ]
+    );
+  }
+
+  async function performDelete() {
+    setDeleting(true);
+    try {
+      await deleteAccount();
+    } catch (e: unknown) {
+      const code = (e as { code?: string }).code ?? '';
+      const msg = e instanceof Error ? e.message : '';
+      if (code === 'auth/requires-recent-login' || msg.includes('requires-recent-login')) {
+        Alert.alert(
+          'Sign In Required',
+          'For security, please sign in again and then delete your account from the Account page.'
+        );
+      } else {
+        Alert.alert('Error', 'Failed to delete account. Please try again.');
+      }
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
@@ -64,6 +108,14 @@ export default function VolunteerAccount() {
           <Text style={styles.cardTitle}>Actions</Text>
           <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut} activeOpacity={0.8}>
             <Text style={styles.signOutBtnText}>Sign Out</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.deleteBtn, deleting && styles.btnDisabled]}
+            onPress={handleDeleteAccount}
+            disabled={deleting}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.deleteBtnText}>Delete Account</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -141,5 +193,21 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 15,
     fontWeight: '700',
+  },
+  deleteBtn: {
+    borderWidth: 1,
+    borderColor: '#dc2626',
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  deleteBtnText: {
+    color: '#dc2626',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  btnDisabled: {
+    opacity: 0.5,
   },
 });
