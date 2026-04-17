@@ -72,7 +72,7 @@ export function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Image source={require('../../assets/icon.png')} style={styles.logo} />
+        <Image source={require('../../assets/susilogo.png')} style={styles.logo} />
         <Text style={styles.subtitle}>Volunteer Event Management</Text>
 
         <View style={styles.form}>
