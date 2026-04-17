@@ -130,8 +130,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  async function deleteAccount(): Promise<void> {
-    throw new Error('not yet implemented');
+  async function deleteAccount() {
+    if (!currentUser) throw new Error('No user is signed in');
+    const uid = currentUser.uid;
+    try {
+      await deleteUser(currentUser);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '';
+      if (msg.includes('requires-recent-login')) {
+        await signOut(auth);
+      }
+      throw e;
+    }
+    await deleteDoc(doc(db, 'users', uid));
   }
 
   useEffect(() => {
