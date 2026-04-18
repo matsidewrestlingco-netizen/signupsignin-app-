@@ -13,6 +13,7 @@ const adminNavItems = [
 const parentNavItems = [
   { name: 'My Signups', path: '/parent' },
   { name: 'Check In', path: '/parent/checkin' },
+  { name: 'Account Settings', path: '/parent/settings' },
 ];
 
 interface SidebarProps {
@@ -74,7 +75,7 @@ export function Sidebar({ type }: SidebarProps) {
             <li key={item.path}>
               <NavLink
                 to={item.path}
-                end={item.path === '/platform' || item.path === '/admin'}
+                end={item.path === '/platform' || item.path === '/admin' || item.path === '/parent'}
                 className={({ isActive }) =>
                   `block px-4 py-2 rounded-md transition-colors ${
                     isActive

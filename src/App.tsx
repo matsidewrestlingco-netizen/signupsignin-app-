@@ -33,6 +33,7 @@ import { EventCheckIn } from './pages/admin/EventCheckIn';
 import { ParentDashboard } from './pages/parent/Dashboard';
 import { ParentEventSignup } from './pages/parent/EventSignup';
 import { ParentCheckIn } from './pages/parent/CheckIn';
+import { ParentAccountSettings } from './pages/parent/AccountSettings';
 
 // Platform pages
 import { PlatformDashboard } from './pages/platform/PlatformDashboard';
@@ -183,6 +184,7 @@ function App() {
               <Route index element={<ParentDashboard />} />
               <Route path="event/:eventId" element={<ParentEventSignup />} />
               <Route path="checkin" element={<ParentCheckIn />} />
+              <Route path="settings" element={<ParentAccountSettings />} />
             </Route>
 
             {/* Platform Admin routes */}
