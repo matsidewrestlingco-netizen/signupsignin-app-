@@ -17,8 +17,8 @@ export function ParentAccountSettings() {
     setDeleting(true);
     setError('');
     try {
-      await deleteDoc(doc(db, 'users', currentUser.uid));
       await deleteUser(currentUser);
+      await deleteDoc(doc(db, 'users', currentUser.uid));
       await logOut();
       navigate('/');
     } catch (err) {

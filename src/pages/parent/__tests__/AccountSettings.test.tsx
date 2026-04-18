@@ -98,7 +98,7 @@ describe('ParentAccountSettings', () => {
     const error = Object.assign(new Error('requires-recent-login'), {
       code: 'auth/requires-recent-login',
     });
-    mockDeleteDoc.mockRejectedValue(error);
+    mockDeleteUser.mockRejectedValue(error);
 
     render(<ParentAccountSettings />);
     await userEvent.click(screen.getByRole('button', { name: /delete account/i }));
