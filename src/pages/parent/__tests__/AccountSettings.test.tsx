@@ -89,6 +89,7 @@ describe('ParentAccountSettings', () => {
       expect(mockDeleteDoc).toHaveBeenCalledWith('mock-doc-ref');
       expect(mockDoc).toHaveBeenCalledWith({}, 'users', 'user-123');
       expect(mockDeleteUser).toHaveBeenCalledWith({ uid: 'user-123' });
+      expect(mockLogOut).toHaveBeenCalledOnce();
       expect(mockNavigate).toHaveBeenCalledWith('/');
     });
   });
