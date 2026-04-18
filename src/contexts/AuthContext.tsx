@@ -5,6 +5,7 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
+  OAuthProvider,
   signOut,
   onAuthStateChanged,
   sendPasswordResetEmail,
@@ -29,6 +30,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, name: string) => Promise<void>;
   logIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
   logOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -106,6 +108,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
     await fetchUserProfile(user);
   }
 
+  async function signInWithApple() {
+    const provider = new OAuthProvider('apple.com');
+    const { user } = await signInWithPopup(auth, provider);
+
+    const docRef = doc(db, 'users', user.uid);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) {
+      await setDoc(docRef, {
+        email: user.email,
+        name: user.displayName || '',
+        createdAt: serverTimestamp(),
+        organizations: {},
+      });
+    }
+
+    await fetchUserProfile(user);
+  }
+
   async function logOut() {
     await signOut(auth);
     setUserProfile(null);
@@ -159,6 +179,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signUp,
     logIn,
     signInWithGoogle,
+    signInWithApple,
     logOut,
     resetPassword,
     refreshProfile,
