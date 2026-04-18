@@ -11,7 +11,7 @@ export function SignUp() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { signUp, signInWithGoogle } = useAuth();
+  const { signUp, signInWithGoogle, signInWithApple } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -179,6 +179,29 @@ export function SignUp() {
               <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>
             Sign up with Google
+          </button>
+
+          <button
+            type="button"
+            disabled={loading}
+            onClick={async () => {
+              setError('');
+              setLoading(true);
+              try {
+                await signInWithApple();
+                navigate(destination, { replace: true });
+              } catch (err) {
+                setError(err instanceof Error ? err.message : 'Failed to sign up with Apple');
+              } finally {
+                setLoading(false);
+              }
+            }}
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-gray-300 rounded-md shadow-sm bg-black text-sm font-medium text-white hover:bg-gray-900 transition-colors"
+          >
+            <svg width="18" height="18" viewBox="0 0 814 1000" fill="currentColor" aria-hidden="true">
+              <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-42.2-152.3-108.8C27.3 727.5 0 620.3 0 514.7c0-190.6 124.6-291.3 247.3-291.3 65.2 0 119.6 43.8 160.4 43.8 38.9 0 101-46.5 173.1-46.5zm-171.8-100.9C650 206.9 683.6 156 683.6 105.2c0-6.8-.6-14.3-1.2-21.2-59.3 2.3-127.3 42.1-168.3 88.9-36.2 41.9-71.6 101.8-71.6 164.7 0 7.4 1.2 14.8 1.8 17.1 3.5.6 9.3 1.2 15.1 1.2 54.7 0 117.5-36.8 148.9-95.9z"/>
+            </svg>
+            Sign up with Apple
           </button>
         </form>
       </div>
