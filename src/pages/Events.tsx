@@ -60,6 +60,7 @@ export function Events() {
             location: data.location || '',
             description: data.description || '',
             isPublic: true,
+            showVolunteerNames: data.showVolunteerNames ?? false,
             createdAt: (data.createdAt as Timestamp)?.toDate() || new Date(),
           });
         });

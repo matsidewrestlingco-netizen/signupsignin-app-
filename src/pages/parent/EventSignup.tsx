@@ -43,6 +43,7 @@ export function ParentEventSignup() {
           location: eventData.location || '',
           description: eventData.description || '',
           isPublic: eventData.isPublic ?? true,
+          showVolunteerNames: eventData.showVolunteerNames ?? false,
           createdAt: (eventData.createdAt as Timestamp)?.toDate() || new Date(),
         });
 

@@ -86,6 +86,7 @@ export function AdminEventDetail() {
           location: data.location || '',
           description: data.description || '',
           isPublic: data.isPublic ?? true,
+          showVolunteerNames: data.showVolunteerNames ?? false,
           createdAt: (data.createdAt as Timestamp)?.toDate() || new Date(),
         });
       } catch (err) {
