@@ -10,6 +10,7 @@ interface SlotCardProps {
   isSignedUp?: boolean;
   showActions?: boolean;
   adminView?: boolean;
+  volunteerNames?: string[];
 }
 
 export function SlotCard({
@@ -21,6 +22,7 @@ export function SlotCard({
   isSignedUp = false,
   showActions = true,
   adminView = false,
+  volunteerNames,
 }: SlotCardProps) {
   const filledCount = Math.max(0, slot.quantityFilled);
   const isFull = filledCount >= slot.quantityTotal;
@@ -83,6 +85,13 @@ export function SlotCard({
                   style={{ width: `${fillPercentage}%` }}
                 />
               </div>
+              {volunteerNames && volunteerNames.length > 0 && (
+                <div className="mt-2 space-y-0.5" data-testid="volunteer-names">
+                  {volunteerNames.map((name, i) => (
+                    <p key={i} className="text-xs text-gray-500">{name}</p>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
