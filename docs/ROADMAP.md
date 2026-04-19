@@ -44,3 +44,4 @@ _Ordered easiest → hardest to implement._
 | Privacy Policy page | Apr 2026 |
 | Support page | Apr 2026 |
 | iOS app (Phase 1–4) | Apr 2026 |
+| Volunteer names on signup page | Apr 2026 |
