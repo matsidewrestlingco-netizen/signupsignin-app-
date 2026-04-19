@@ -138,7 +138,12 @@ export function ParentDashboard() {
                     <div className="card-body">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="font-semibold text-gray-900">{signup.eventTitle}</h3>
+                          <Link
+                            to={`/event/${currentOrg?.id}/${signup.eventId}`}
+                            className="font-semibold text-gray-900 hover:text-primary-600"
+                          >
+                            {signup.eventTitle}
+                          </Link>
                           <p className="text-sm text-gray-500 mt-1">
                             {format(signup.eventDate, 'EEEE, MMMM d, yyyy')}
                           </p>
@@ -189,7 +194,12 @@ export function ParentDashboard() {
                     <div className="card-body">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="font-semibold text-gray-900">{signup.eventTitle}</h3>
+                          <Link
+                            to={`/event/${currentOrg?.id}/${signup.eventId}`}
+                            className="font-semibold text-gray-900 hover:text-primary-600"
+                          >
+                            {signup.eventTitle}
+                          </Link>
                           <p className="text-sm text-gray-500 mt-1">
                             {format(signup.eventDate, 'EEEE, MMMM d, yyyy')}
                           </p>
