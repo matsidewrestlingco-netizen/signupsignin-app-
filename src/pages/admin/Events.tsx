@@ -28,6 +28,7 @@ export function AdminEvents() {
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [isPublic, setIsPublic] = useState(true);
+  const [showVolunteerNames, setShowVolunteerNames] = useState(false);
 
   const resetForm = () => {
     setTitle('');
@@ -36,6 +37,7 @@ export function AdminEvents() {
     setLocation('');
     setDescription('');
     setIsPublic(true);
+    setShowVolunteerNames(false);
     setError('');
     setSelectedTemplateId('');
     setPendingSlots([]);
@@ -70,6 +72,7 @@ export function AdminEvents() {
         location,
         description,
         isPublic,
+        showVolunteerNames,
       };
 
       const eventId = await createEvent(eventData);
@@ -286,6 +289,19 @@ export function AdminEvents() {
             />
             <label htmlFor="isPublic" className="ml-2 text-sm text-gray-700">
               Make this event public (visible to anyone with the link)
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              id="showVolunteerNames"
+              type="checkbox"
+              checked={showVolunteerNames}
+              onChange={(e) => setShowVolunteerNames(e.target.checked)}
+              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+            />
+            <label htmlFor="showVolunteerNames" className="ml-2 text-sm text-gray-700">
+              Show volunteer names publicly (displays who has signed up for each slot)
             </label>
           </div>
 
