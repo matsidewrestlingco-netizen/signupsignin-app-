@@ -21,6 +21,7 @@ export interface Event {
   location: string;
   description: string;
   isPublic: boolean;
+  showVolunteerNames: boolean;
   createdAt: Date;
 }
 
@@ -31,6 +32,7 @@ export interface EventInput {
   location: string;
   description: string;
   isPublic: boolean;
+  showVolunteerNames: boolean;
 }
 
 export function useEvents(orgId: string | undefined) {
@@ -62,6 +64,7 @@ export function useEvents(orgId: string | undefined) {
             location: data.location || '',
             description: data.description || '',
             isPublic: data.isPublic ?? true,
+            showVolunteerNames: data.showVolunteerNames ?? false,
             createdAt: (data.createdAt as Timestamp)?.toDate() || new Date(),
           });
         });
