@@ -34,6 +34,7 @@ export function EventDetail() {
   const [error, setError] = useState<string | null>(null);
   const [signingUp, setSigningUp] = useState<string | null>(null);
   const [orgBranding, setOrgBranding] = useState<{ primaryColor: string; logoUrl?: string; name: string } | null>(null);
+  const [slotVolunteerNames, setSlotVolunteerNames] = useState<Record<string, string[]>>({});
 
   const { createSignup } = useSignups(orgId);
 
@@ -63,6 +64,7 @@ export function EventDetail() {
           location: eventData.location || '',
           description: eventData.description || '',
           isPublic: eventData.isPublic ?? true,
+          showVolunteerNames: eventData.showVolunteerNames ?? false,
           createdAt: (eventData.createdAt as Timestamp)?.toDate() || new Date(),
         });
 
@@ -132,6 +134,24 @@ export function EventDetail() {
         }
 
         setSlots(slotList);
+
+        // Fetch volunteer names if event has showVolunteerNames enabled
+        if (eventData.showVolunteerNames) {
+          try {
+            const signupsRef = collection(db, 'organizations', orgId, 'signups');
+            const signupsQuery = query(signupsRef, where('eventId', '==', eventId));
+            const signupsSnap = await getDocs(signupsQuery);
+            const namesBySlot: Record<string, string[]> = {};
+            signupsSnap.forEach((doc) => {
+              const { slotId, userName } = doc.data();
+              if (!namesBySlot[slotId]) namesBySlot[slotId] = [];
+              namesBySlot[slotId].push(userName);
+            });
+            setSlotVolunteerNames(namesBySlot);
+          } catch {
+            // Names are supplementary — silent failure, slots still render
+          }
+        }
 
         // Fetch user's signups for this event
         if (currentUser) {
@@ -318,6 +338,11 @@ export function EventDetail() {
                       key={slot.id}
                       slot={slot}
                       isSignedUp={userSignupSlots.has(slot.id)}
+                      volunteerNames={
+                        event.showVolunteerNames
+                          ? (slotVolunteerNames[slot.id] ?? [])
+                          : undefined
+                      }
                       onSignUp={
                         signingUp === slot.id
                           ? undefined
