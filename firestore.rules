@@ -89,8 +89,10 @@ service cloud.firestore {
       match /signups/{signupId} {
         // Org admins can read all signups
         // Users can read their own signups
+        // Anyone can read signups for events where the admin enabled showVolunteerNames
         allow read: if isOrgAdmin(orgId) ||
-          (isSignedIn() && resource.data.get('userId', null) == request.auth.uid);
+          (isSignedIn() && resource.data.get('userId', null) == request.auth.uid) ||
+          get(/databases/$(database)/documents/organizations/$(orgId)/events/$(resource.data.eventId)).data.get('showVolunteerNames', false) == true;
 
         // Signed in users can create signups for themselves
         allow create: if isSignedIn() &&
