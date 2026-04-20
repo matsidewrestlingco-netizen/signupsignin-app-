@@ -30,12 +30,14 @@ A running list of planned enhancements, ideas from testers, and feature requests
 
 ---
 
-## Q3 2026 (Jul – Sep) — 100 planned hrs + 25 ad-hoc = 125 hrs
+## Q3 2026 (Jul – Sep) — 114 planned hrs + 25 ad-hoc = 139 hrs
 
 | # | Feature | Est. Hours | Difficulty | Description | Source |
 |---|---------|-----------|------------|-------------|--------|
-| 7 | RSVP / Attendance Format | 45 hrs | Moderate–Hard | Simple "can you attend?" event type, not just volunteer slot signups. Useful for banquets, meetings, and events where headcount matters more than role assignment. Requires a new event type, data model changes, and a new public-facing signup flow. | Competitor reviews |
-| 8 | Starter Template Packs | 55 hrs | Hard | Curated template libraries that super admin can push to new orgs at onboarding. Sport-agnostic design — wrestling pack first (tournaments, dual meets, fundraisers, match nights, banquets), expandable to lacrosse, other sports, and community events. Requires new platform-level Firestore collections and a push-to-org mechanism. | Daniel |
+| 12 | RSVP / Attendance Format | 45 hrs | Moderate–Hard | Simple "can you attend?" event type, not just volunteer slot signups. Useful for banquets, meetings, and events where headcount matters more than role assignment. Requires a new event type, data model changes, and a new public-facing signup flow. | Competitor reviews |
+| 13 | Starter Template Packs | 55 hrs | Hard | Curated template libraries that super admin can push to new orgs at onboarding. Sport-agnostic design — wrestling pack first (tournaments, dual meets, fundraisers, match nights, banquets), expandable to lacrosse, other sports, and community events. Requires new platform-level Firestore collections and a push-to-org mechanism. | Daniel |
+| 14 | **[Parity]** Add to Calendar on iOS | 8 hrs | Easy | Allow iOS volunteers to add their shifts to Apple Calendar. Uses native iOS calendar integration via Expo (`expo-calendar` or deep link). Mirrors the Google/Outlook/.ics options already on web. | Parity audit |
+| 15 | **[Parity]** Filter Events by Upcoming/Past on iOS | 6 hrs | Easiest | Add an upcoming/past toggle to the iOS volunteer events list. Data already exists — just needs a date filter and a UI tab or toggle. Mirrors the existing web filter. | Parity audit |
 
 ---
 
@@ -43,8 +45,8 @@ A running list of planned enhancements, ideas from testers, and feature requests
 
 | # | Feature | Est. Hours | Difficulty | Description | Source |
 |---|---------|-----------|------------|-------------|--------|
-| 9 | Template Marketplace | 40 hrs | Hard | Self-serve library where org admins can browse and import template packs. Full discovery/browse/import UI. Long-term follow-on to Starter Template Packs. | Daniel |
-| 10 | SMS / Text Notifications | 65 hrs | Hardest | Send volunteer reminders and confirmations via text in addition to email. Requires a third-party service (e.g. Twilio), phone number collection, and opt-in compliance with TCPA regulations. | Competitor reviews |
+| 16 | Template Marketplace | 40 hrs | Hard | Self-serve library where org admins can browse and import template packs. Full discovery/browse/import UI. Long-term follow-on to Starter Template Packs. | Daniel |
+| 17 | SMS / Text Notifications | 65 hrs | Hardest | Send volunteer reminders and confirmations via text in addition to email. Requires a third-party service (e.g. Twilio), phone number collection, and opt-in compliance with TCPA regulations. | Competitor reviews |
 
 ---
 
