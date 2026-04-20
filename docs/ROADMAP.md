@@ -14,39 +14,39 @@ A running list of planned enhancements, ideas from testers, and feature requests
 
 ## Q2 2026 (Apr – Jun) — 116 planned hrs + 25 ad-hoc = 141 hrs
 
-| # | Feature | Est. Hours | Difficulty | Description | Source |
-|---|---------|-----------|------------|-------------|--------|
-| 1 | Past Events View | 6 hrs | Easiest | Dedicated view for completed/past events with their full signup history. Data already exists in Firestore — just needs a date filter and a UI toggle. Lets admins reference historical participation and use past events as a starting point. | Competitor reviews |
-| 2 | QR Code Generation | 9 hrs | Easy | Generate a scannable QR code for any public event page. No backend changes — just a QR library on the frontend. SignupGenius paywalls this; offering it free is a strong differentiator. Useful for flyers, bulletin boards, and day-of check-in. | Competitor reviews |
-| 3 | Duplicate Event | 13 hrs | Easy–Moderate | One-click copy of an existing event (title, slots, settings) to quickly create a new one without rebuilding from scratch. Distinct from templates — works directly on a specific past event. | Competitor reviews |
-| 4 | Edit Template | 15 hrs | Easy–Moderate | Allow admins to edit an existing template without having to delete and recreate it. Same form as create, pre-populated — requires adding an updateTemplate function. | Internal |
-| 5 | Volunteer Participation History | 18 hrs | Moderate | Show volunteers a history of all events they've signed up for and attended. Data already in Firestore — needs a new view in the parent dashboard. Builds engagement and lets volunteers track their own contributions. | Competitor reviews |
-| 6 | Bulk Slot Creation | 23 hrs | Moderate | Tool to generate multiple time slots at once (e.g., every 30 min from 9am–12pm, 2 volunteers each). Reduces the manual slot-by-slot setup that reviewers found tedious. No data model changes needed. | Competitor reviews |
-| 7 | **[Parity]** Volunteer QR Code on Web | 6 hrs | Easy | Add personal QR code generation to the web volunteer experience (Check-In tab or My Signups). Encodes volunteer userId so iOS admin scanner can read it. Uses qrcode.react library. | Parity audit |
-| 8 | **[Parity]** Volunteer Names on iOS Event Detail | 7 hrs | Easy | When an admin enables "show volunteer names" on an event, iOS volunteers should see who else is signed up. Reads the existing `showVolunteerNames` flag and fetches signup names — display-only, no new data model changes. | Parity audit |
-| 9 | **[Parity]** Admin Cancel Signups on iOS | 5 hrs | Easy | Add a cancel action to the iOS day-of roster so admins can remove a no-show volunteer and reopen the slot on the spot. Reuses existing Firestore delete pattern with a confirmation dialog. ✅ Spec done | Parity audit |
-| 10 | **[Parity]** Org Branding Display on iOS | 12 hrs | Moderate | Fetch org `primaryColor` and `logoUrl` from Firestore and apply throughout the iOS app (headers, buttons, accents, dashboard). Read-only — editing stays on web. Requires a theming context to propagate values across screens. | Parity audit |
-| 11 | **[Parity]** Privacy Policy & Support Links on iOS | 2 hrs | Easiest | Add "Privacy Policy" and "Support" tappable links to the iOS Account tab, opening the existing web pages in Safari via `Linking.openURL()`. Required for App Store compliance. ✅ Spec done | Parity audit / App Store |
+| # | Feature | Est. Hours | Spec | Difficulty | Description | Source |
+|---|---------|-----------|------|------------|-------------|--------|
+| 1 | Past Events View | 6 hrs | — | Easiest | Dedicated view for completed/past events with their full signup history. Data already exists in Firestore — just needs a date filter and a UI toggle. Lets admins reference historical participation and use past events as a starting point. | Competitor reviews |
+| 2 | QR Code Generation | 9 hrs | — | Easy | Generate a scannable QR code for any public event page. No backend changes — just a QR library on the frontend. SignupGenius paywalls this; offering it free is a strong differentiator. Useful for flyers, bulletin boards, and day-of check-in. | Competitor reviews |
+| 3 | Duplicate Event | 13 hrs | — | Easy–Moderate | One-click copy of an existing event (title, slots, settings) to quickly create a new one without rebuilding from scratch. Distinct from templates — works directly on a specific past event. | Competitor reviews |
+| 4 | Edit Template | 15 hrs | — | Easy–Moderate | Allow admins to edit an existing template without having to delete and recreate it. Same form as create, pre-populated — requires adding an updateTemplate function. | Internal |
+| 5 | Volunteer Participation History | 18 hrs | — | Moderate | Show volunteers a history of all events they've signed up for and attended. Data already in Firestore — needs a new view in the parent dashboard. Builds engagement and lets volunteers track their own contributions. | Competitor reviews |
+| 6 | Bulk Slot Creation | 23 hrs | — | Moderate | Tool to generate multiple time slots at once (e.g., every 30 min from 9am–12pm, 2 volunteers each). Reduces the manual slot-by-slot setup that reviewers found tedious. No data model changes needed. | Competitor reviews |
+| 7 | **[Parity]** Volunteer QR Code on Web | 6 hrs | — | Easy | Add personal QR code generation to the web volunteer experience (Check-In tab or My Signups). Encodes volunteer userId so iOS admin scanner can read it. Uses qrcode.react library. | Parity audit |
+| 8 | **[Parity]** Volunteer Names on iOS Event Detail | 7 hrs | — | Easy | When an admin enables "show volunteer names" on an event, iOS volunteers should see who else is signed up. Reads the existing `showVolunteerNames` flag and fetches signup names — display-only, no new data model changes. | Parity audit |
+| 9 | **[Parity]** Admin Cancel Signups on iOS | 5 hrs | ✅ | Easy | Add a cancel action to the iOS day-of roster so admins can remove a no-show volunteer and reopen the slot on the spot. Reuses existing Firestore delete pattern with a confirmation dialog. | Parity audit |
+| 10 | **[Parity]** Org Branding Display on iOS | 12 hrs | — | Moderate | Fetch org `primaryColor` and `logoUrl` from Firestore and apply throughout the iOS app (headers, buttons, accents, dashboard). Read-only — editing stays on web. Requires a theming context to propagate values across screens. | Parity audit |
+| 11 | **[Parity]** Privacy Policy & Support Links on iOS | 2 hrs | ✅ | Easiest | Add "Privacy Policy" and "Support" tappable links to the iOS Account tab, opening the existing web pages in Safari via `Linking.openURL()`. Required for App Store compliance. | Parity audit / App Store |
 
 ---
 
 ## Q3 2026 (Jul – Sep) — 114 planned hrs + 25 ad-hoc = 139 hrs
 
-| # | Feature | Est. Hours | Difficulty | Description | Source |
-|---|---------|-----------|------------|-------------|--------|
-| 12 | RSVP / Attendance Format | 45 hrs | Moderate–Hard | Simple "can you attend?" event type, not just volunteer slot signups. Useful for banquets, meetings, and events where headcount matters more than role assignment. Requires a new event type, data model changes, and a new public-facing signup flow. | Competitor reviews |
-| 13 | Starter Template Packs | 55 hrs | Hard | Curated template libraries that super admin can push to new orgs at onboarding. Sport-agnostic design — wrestling pack first (tournaments, dual meets, fundraisers, match nights, banquets), expandable to lacrosse, other sports, and community events. Requires new platform-level Firestore collections and a push-to-org mechanism. | Daniel |
-| 14 | **[Parity]** Add to Calendar on iOS | 8 hrs | Easy | Allow iOS volunteers to add their shifts to Apple Calendar. Uses native iOS calendar integration via Expo (`expo-calendar` or deep link). Mirrors the Google/Outlook/.ics options already on web. | Parity audit |
-| 15 | **[Parity]** Filter Events by Upcoming/Past on iOS | 6 hrs | Easiest | Add an upcoming/past toggle to the iOS volunteer events list. Data already exists — just needs a date filter and a UI tab or toggle. Mirrors the existing web filter. ✅ Spec done | Parity audit |
+| # | Feature | Est. Hours | Spec | Difficulty | Description | Source |
+|---|---------|-----------|------|------------|-------------|--------|
+| 12 | RSVP / Attendance Format | 45 hrs | — | Moderate–Hard | Simple "can you attend?" event type, not just volunteer slot signups. Useful for banquets, meetings, and events where headcount matters more than role assignment. Requires a new event type, data model changes, and a new public-facing signup flow. | Competitor reviews |
+| 13 | Starter Template Packs | 55 hrs | — | Hard | Curated template libraries that super admin can push to new orgs at onboarding. Sport-agnostic design — wrestling pack first (tournaments, dual meets, fundraisers, match nights, banquets), expandable to lacrosse, other sports, and community events. Requires new platform-level Firestore collections and a push-to-org mechanism. | Daniel |
+| 14 | **[Parity]** Add to Calendar on iOS | 8 hrs | — | Easy | Allow iOS volunteers to add their shifts to Apple Calendar. Uses native iOS calendar integration via Expo (`expo-calendar` or deep link). Mirrors the Google/Outlook/.ics options already on web. | Parity audit |
+| 15 | **[Parity]** Filter Events by Upcoming/Past on iOS | 6 hrs | ✅ | Easiest | Add an upcoming/past toggle to the iOS volunteer events list. Data already exists — just needs a date filter and a UI tab or toggle. Mirrors the existing web filter. | Parity audit |
 
 ---
 
 ## Q4 2026 (Oct – Dec) — 105 planned hrs + 25 ad-hoc = 130 hrs
 
-| # | Feature | Est. Hours | Difficulty | Description | Source |
-|---|---------|-----------|------------|-------------|--------|
-| 16 | Template Marketplace | 40 hrs | Hard | Self-serve library where org admins can browse and import template packs. Full discovery/browse/import UI. Long-term follow-on to Starter Template Packs. | Daniel |
-| 17 | SMS / Text Notifications | 65 hrs | Hardest | Send volunteer reminders and confirmations via text in addition to email. Requires a third-party service (e.g. Twilio), phone number collection, and opt-in compliance with TCPA regulations. | Competitor reviews |
+| # | Feature | Est. Hours | Spec | Difficulty | Description | Source |
+|---|---------|-----------|------|------------|-------------|--------|
+| 16 | Template Marketplace | 40 hrs | — | Hard | Self-serve library where org admins can browse and import template packs. Full discovery/browse/import UI. Long-term follow-on to Starter Template Packs. | Daniel |
+| 17 | SMS / Text Notifications | 65 hrs | — | Hardest | Send volunteer reminders and confirmations via text in addition to email. Requires a third-party service (e.g. Twilio), phone number collection, and opt-in compliance with TCPA regulations. | Competitor reviews |
 
 ---
 
